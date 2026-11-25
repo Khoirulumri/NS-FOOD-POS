@@ -9,45 +9,60 @@
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;background:#f4f7f5;color:#26352d}
-header{background:#145c3b;color:white;padding:22px 25px}
+header{background:#145c3b;color:white;padding:20px 25px}
 header h1{margin:0;font-size:24px}
 header p{margin:6px 0 0;color:#d8eee1;font-size:13px}
 .container{padding:22px;max-width:1200px;margin:auto}
 .welcome{margin-bottom:22px}
 .welcome h2{margin:0 0 6px;font-size:22px}
-.welcome p{margin:0;color:#718078;font-size:14px}
-.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}
-.card{background:white;padding:19px;border-radius:12px;border:1px solid #e5ece7}
-.card small{color:#718078}
-.card h3{font-size:23px;margin:12px 0 5px}
-.card p{font-size:12px;color:#829087;margin:0}
-.section{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-top:20px}
-.panel{background:white;padding:20px;border:1px solid #e5ece7;border-radius:12px}
-.panel h3{margin:0 0 18px;font-size:16px}
-.chart{height:180px;display:flex;align-items:end;justify-content:space-around;gap:12px;border-bottom:1px solid #e5ece7;padding:0 5px}
-.bar-wrap{height:100%;display:flex;flex-direction:column;justify-content:end;align-items:center;gap:8px;flex:1}
-.bar{width:100%;max-width:38px;background:#248253;border-radius:6px 6px 0 0}
-.bar-wrap span{font-size:11px;color:#718078}
-.stock-item{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid #edf1ee;font-size:13px}
-.stock-item:last-child{border:0}
-.warning{color:#c07820;font-weight:bold}
-nav{display:flex;gap:9px;flex-wrap:wrap;margin-top:22px}
-nav a{background:white;border:1px solid #e1e9e3;color:#245a3d;text-decoration:none;padding:12px 16px;border-radius:9px;font-size:13px}
-nav a:hover{background:#e8f3ec}
-footer{text-align:center;color:#89958d;font-size:12px;padding:25px}
+.welcome p{margin:5px 0;color:#718078;font-size:14px}
+.panel{background:white;padding:20px;border:1px solid #e5ece7;border-radius:12px;margin-bottom:18px}
+.panel h3{margin:0 0 16px;font-size:17px}
+button{cursor:pointer;border:0;border-radius:7px;padding:10px 14px;font-size:13px}
+button:disabled{opacity:.6;cursor:wait}
+.primary{background:#145c3b;color:white}
+.secondary{background:#edf3ef;color:#245a3d}
+.danger{background:#fff0ed;color:#b43b2b}
+#logoutButton{float:right;background:white;color:#145c3b}
 .login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
 .login-box{background:white;width:100%;max-width:390px;padding:30px;border-radius:15px;border:1px solid #e5ece7}
 .login-box h1{text-align:center;color:#145c3b;margin:0 0 8px}
 .login-box p{text-align:center;color:#718078;font-size:13px;margin-bottom:25px}
-.login-box label{display:block;font-size:13px;margin:15px 0 7px}
-.login-box input{width:100%;padding:13px;border:1px solid #dce5de;border-radius:8px;font-size:15px}
-.login-box button{width:100%;padding:14px;background:#145c3b;color:white;border:0;border-radius:8px;font-size:15px;margin-top:22px;cursor:pointer}
-.login-box button:disabled{opacity:.6;cursor:wait}
+label{display:block;font-size:13px;margin:13px 0 7px}
+input,select{width:100%;padding:12px;border:1px solid #dce5de;border-radius:8px;font-size:14px;background:white}
+.login-box button{width:100%;padding:14px;margin-top:20px}
 #loginMessage{color:#c0392b;font-size:13px;text-align:center;margin-top:15px}
 #dashboard{display:none}
-#logoutButton{float:right;background:#fff;color:#145c3b;border:0;border-radius:7px;padding:9px 13px;cursor:pointer}
-@media(max-width:800px){.cards{grid-template-columns:repeat(2,1fr)}.section{grid-template-columns:1fr}}
-@media(max-width:420px){.container{padding:15px}.cards{gap:9px}.card{padding:13px}.card h3{font-size:19px}}
+#productForm{display:none;margin-top:18px;padding-top:18px;border-top:1px solid #e5ece7}
+.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0 15px}
+.form-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.toolbar input{max-width:300px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:650px}
+th,td{text-align:left;padding:13px 10px;border-bottom:1px solid #edf1ee;font-size:13px}
+th{color:#718078;font-weight:600;background:#fafcfb}
+td{vertical-align:middle}
+.status{display:inline-block;padding:5px 9px;border-radius:20px;font-size:11px;background:#e8f4ec;color:#21613d}
+.status.off{background:#f0f0f0;color:#777}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+.actions button{padding:7px 9px;font-size:11px}
+.stock-low{color:#c07820;font-weight:bold}
+.stock-ok{color:#28734a}
+.notice{font-size:12px;color:#718078;line-height:1.6}
+.message{font-size:13px;margin-top:12px}
+.error{color:#c0392b}
+.success{color:#28734a}
+#drinkStock{font-size:23px;font-weight:bold;color:#145c3b}
+nav{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}
+nav a{background:white;border:1px solid #e1e9e3;color:#245a3d;text-decoration:none;padding:11px 15px;border-radius:9px;font-size:13px}
+footer{text-align:center;color:#89958d;font-size:12px;padding:25px}
+@media(max-width:600px){
+.container{padding:14px}
+.panel{padding:15px}
+.form-grid{grid-template-columns:1fr}
+header{padding:18px}
+}
 </style>
 </head>
 
@@ -65,7 +80,7 @@ footer{text-align:center;color:#89958d;font-size:12px;padding:25px}
       <label for="password">Password</label>
       <input id="password" type="password" placeholder="Masukkan password" autocomplete="current-password" required>
 
-      <button id="loginButton" type="submit">Masuk</button>
+      <button id="loginButton" class="primary" type="submit">Masuk</button>
       <div id="loginMessage"></div>
     </form>
   </div>
@@ -85,64 +100,105 @@ footer{text-align:center;color:#89958d;font-size:12px;padding:25px}
       <p id="userRole"></p>
     </div>
 
-    <div class="cards">
-      <div class="card">
-        <small>Penjualan Hari Ini</small>
-        <h3>Rp0</h3>
-        <p>Total transaksi hari ini</p>
-      </div>
-      <div class="card">
-        <small>Total Transaksi</small>
-        <h3>0</h3>
-        <p>Transaksi tercatat</p>
-      </div>
-      <div class="card">
-        <small>Jumlah Produk</small>
-        <h3>0</h3>
-        <p>Produk terdaftar</p>
-      </div>
-      <div class="card">
-        <small>Stok Menipis</small>
-        <h3>0</h3>
-        <p>Produk perlu diperiksa</p>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="panel">
-        <h3>Grafik Penjualan Mingguan</h3>
-        <div class="chart">
-          <div class="bar-wrap"><div class="bar" style="height:8%"></div><span>Sen</span></div>
-          <div class="bar-wrap"><div class="bar" style="height:8%"></div><span>Sel</span></div>
-          <div class="bar-wrap"><div class="bar" style="height:8%"></div><span>Rab</span></div>
-          <div class="bar-wrap"><div class="bar" style="height:8%"></div><span>Kam</span></div>
-          <div class="bar-wrap"><div class="bar" style="height:8%"></div><span>Jum</span></div>
-          <div class="bar-wrap"><div class="bar" style="height:8%"></div><span>Sab</span></div>
-          <div class="bar-wrap"><div class="bar" style="height:8%"></div><span>Min</span></div>
+    <div class="panel">
+      <div class="toolbar">
+        <div>
+          <h3 style="margin-bottom:5px">Data Barang</h3>
+          <div class="notice" id="productDescription">Daftar barang NS FOOD</div>
         </div>
-        <p style="font-size:11px;color:#89958d;margin-top:12px">Belum ada data penjualan.</p>
+        <button id="addProductButton" class="primary" type="button" style="display:none">
+          + Tambah Barang
+        </button>
       </div>
 
-      <div class="panel">
-        <h3>Perhatian Stok Barang</h3>
-        <div class="stock-item">
-          <span>Belum ada data barang</span>
-          <span class="warning">-</span>
-        </div>
-        <p style="font-size:12px;color:#89958d">Peringatan stok akan muncul setelah data produk dimasukkan.</p>
+      <div id="productForm">
+        <h3 id="formTitle">Tambah Barang</h3>
+
+        <form id="productEntryForm">
+          <div class="form-grid">
+            <div>
+              <label for="productName">Nama Barang</label>
+              <input id="productName" type="text" placeholder="Contoh: Es Teler" required>
+            </div>
+
+            <div>
+              <label for="productCategory">Kategori</label>
+              <select id="productCategory" required>
+                <option value="">Pilih kategori</option>
+                <option value="Makanan">Makanan</option>
+                <option value="Minuman">Minuman</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="productPrice">Harga Jual (Rp)</label>
+              <input id="productPrice" type="number" min="0" step="1" placeholder="Contoh: 10000" required>
+            </div>
+          </div>
+
+          <div id="foodStockFields">
+            <div class="form-grid">
+              <div>
+                <label for="productStock">Jumlah Stok Makanan</label>
+                <input id="productStock" type="number" min="0" step="1" value="0">
+              </div>
+              <div>
+                <label for="productMinimum">Batas Minimum Stok</label>
+                <input id="productMinimum" type="number" min="0" step="1" value="0">
+              </div>
+            </div>
+          </div>
+
+          <div id="drinkStockNote" class="notice" style="display:none;margin-top:12px">
+            Stok produk Minuman menggunakan persediaan cup bersama.
+            Jumlah cup tidak diisi pada formulir barang ini.
+          </div>
+
+          <div class="form-actions">
+            <button id="saveProductButton" class="primary" type="submit">Simpan Barang</button>
+            <button id="cancelProductButton" class="secondary" type="button">Batal</button>
+          </div>
+          <div id="formMessage" class="message"></div>
+        </form>
       </div>
     </div>
 
-    <div class="panel" style="margin-top:20px">
-      <h3>Menu Utama</h3>
-      <nav>
-        <a href="#">Dashboard</a>
-        <a href="#">Kasir</a>
-        <a href="#">Data Barang</a>
-        <a href="#">Barang Masuk</a>
-        <a href="#">Laporan</a>
-      </nav>
+    <div class="panel">
+      <div class="toolbar" style="margin-bottom:15px">
+        <h3 style="margin:0">Daftar Barang</h3>
+        <input id="searchProduct" type="search" placeholder="Cari nama barang...">
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nama Barang</th>
+              <th>Kategori</th>
+              <th>Harga Jual</th>
+              <th>Stok</th>
+              <th>Status</th>
+              <th id="actionHeader" style="display:none">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="productTable">
+            <tr><td colspan="6">Memuat data barang...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="productMessage" class="message"></div>
     </div>
+
+    <div class="panel">
+      <h3>Persediaan Cup Minuman</h3>
+      <div id="drinkStock">Memuat...</div>
+      <p class="notice">Persediaan cup digunakan bersama oleh seluruh produk Minuman.</p>
+    </div>
+
+    <nav>
+      <a href="#" id="dashboardLink">Dashboard</a>
+      <a href="#" id="productsLink">Data Barang</a>
+    </nav>
   </main>
 
   <footer>NS FOOD &copy; 2026</footer>
@@ -163,14 +219,381 @@ const loginForm = document.getElementById("loginForm");
 const loginButton = document.getElementById("loginButton");
 const loginMessage = document.getElementById("loginMessage");
 
+let currentProfile = null;
+let categories = [];
+let products = [];
+let editingProductId = null;
+let drinkInventory = null;
+
+const categoryId = (name) =>
+  categories.find(category => category.name === name)?.id;
+
+function rupiah(value) {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0
+  }).format(Number(value || 0));
+}
+
+function showMessage(elementId, message, type = "error") {
+  const element = document.getElementById(elementId);
+  element.textContent = message;
+  element.className = "message " + type;
+}
+
 function showDashboard(profile) {
+  currentProfile = profile;
   loginPage.style.display = "none";
   dashboard.style.display = "block";
+
   document.getElementById("userName").textContent =
     profile.full_name || profile.username;
+
   document.getElementById("userRole").textContent =
     profile.role === "admin" ? "Admin" : "Kasir";
+
+  const isAdmin = profile.role === "admin";
+
+  document.getElementById("addProductButton").style.display =
+    isAdmin ? "inline-block" : "none";
+
+  document.getElementById("actionHeader").style.display =
+    isAdmin ? "table-cell" : "none";
+
+  loadDataBarang();
 }
+
+async function loadCategories() {
+  const { data, error } = await supabase
+    .from("categories")
+    .select("id, name")
+    .order("name");
+
+  if (error) throw error;
+  categories = data || [];
+}
+
+async function loadDataBarang() {
+  const table = document.getElementById("productTable");
+  table.innerHTML = '<tr><td colspan="6">Memuat data barang...</td></tr>';
+
+  try {
+    const [productResult, drinkResult] = await Promise.all([
+      supabase.from("products").select("*").order("name"),
+      supabase.from("drink_inventory").select("*").eq("id", 1).maybeSingle()
+    ]);
+
+    if (productResult.error) throw productResult.error;
+    if (drinkResult.error) throw drinkResult.error;
+
+    products = productResult.data || [];
+    drinkInventory = drinkResult.data;
+
+    renderProducts();
+    renderDrinkStock();
+
+  } catch (error) {
+    console.error(error);
+    table.innerHTML =
+      '<tr><td colspan="6">Gagal memuat data barang.</td></tr>';
+    showMessage("productMessage", error.message);
+  }
+}
+
+function renderDrinkStock() {
+  const stockElement = document.getElementById("drinkStock");
+
+  if (!drinkInventory) {
+    stockElement.textContent = "Belum tersedia";
+    return;
+  }
+
+  stockElement.textContent =
+    Number(drinkInventory.cup_stock) + " cup";
+
+  if (
+    Number(drinkInventory.cup_stock) <=
+    Number(drinkInventory.minimum_stock)
+  ) {
+    stockElement.className = "stock-low";
+  } else {
+    stockElement.className = "stock-ok";
+  }
+}
+
+function renderProducts() {
+  const table = document.getElementById("productTable");
+  const isAdmin = currentProfile?.role === "admin";
+  const keyword = document.getElementById("searchProduct").value
+    .trim().toLowerCase();
+
+  const visibleProducts = products.filter(product => {
+    const category = categories.find(c => c.id === product.category_id);
+    const categoryName = category?.name || "Tidak diketahui";
+
+    const activeForUser = isAdmin || product.is_active;
+    const matchesSearch =
+      product.name.toLowerCase().includes(keyword) ||
+      categoryName.toLowerCase().includes(keyword);
+
+    return activeForUser && matchesSearch;
+  });
+
+  if (visibleProducts.length === 0) {
+    table.innerHTML =
+      '<tr><td colspan="6">Belum ada barang yang ditemukan.</td></tr>';
+    return;
+  }
+
+  table.innerHTML = "";
+
+  visibleProducts.forEach(product => {
+    const category = categories.find(c => c.id === product.category_id);
+    const categoryName = category?.name || "-";
+
+    let stockText = "-";
+    let stockClass = "";
+
+    if (product.stock_mode === "shared_cups") {
+      const cups = Number(drinkInventory?.cup_stock || 0);
+      const minimum = Number(drinkInventory?.minimum_stock || 0);
+      stockText = cups + " cup";
+      stockClass = cups <= minimum ? "stock-low" : "stock-ok";
+    } else {
+      const stock = Number(product.stock_quantity);
+      const minimum = Number(product.minimum_stock);
+      stockText = stock + " bungkus";
+      stockClass = stock <= minimum ? "stock-low" : "stock-ok";
+    }
+
+    const row = document.createElement("tr");
+
+    const nameCell = document.createElement("td");
+    nameCell.textContent = product.name;
+
+    const categoryCell = document.createElement("td");
+    categoryCell.textContent = categoryName;
+
+    const priceCell = document.createElement("td");
+    priceCell.textContent = rupiah(product.sale_price);
+
+    const stockCell = document.createElement("td");
+    stockCell.textContent = stockText;
+    stockCell.className = stockClass;
+
+    const statusCell = document.createElement("td");
+    const status = document.createElement("span");
+    status.className = product.is_active ? "status" : "status off";
+    status.textContent = product.is_active ? "Aktif" : "Nonaktif";
+    statusCell.appendChild(status);
+
+    row.append(nameCell, categoryCell, priceCell, stockCell, statusCell);
+
+    if (isAdmin) {
+      const actionCell = document.createElement("td");
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      const editButton = document.createElement("button");
+      editButton.className = "secondary";
+      editButton.textContent = "Edit";
+      editButton.addEventListener("click", () => editProduct(product.id));
+
+      const toggleButton = document.createElement("button");
+      toggleButton.className = product.is_active ? "danger" : "primary";
+      toggleButton.textContent = product.is_active ? "Nonaktifkan" : "Aktifkan";
+      toggleButton.addEventListener("click", () => toggleProduct(product));
+
+      actions.append(editButton, toggleButton);
+      actionCell.appendChild(actions);
+      row.appendChild(actionCell);
+    }
+
+    table.appendChild(row);
+  });
+}
+
+function updateStockFields() {
+  const category = document.getElementById("productCategory").value;
+  const isDrink = category === "Minuman";
+
+  document.getElementById("foodStockFields").style.display =
+    isDrink ? "none" : "block";
+
+  document.getElementById("drinkStockNote").style.display =
+    isDrink ? "block" : "none";
+
+  document.getElementById("productStock").required = !isDrink;
+  document.getElementById("productMinimum").required = !isDrink;
+}
+
+function openProductForm(product = null) {
+  editingProductId = product?.id || null;
+
+  document.getElementById("productEntryForm").reset();
+  document.getElementById("formTitle").textContent =
+    product ? "Edit Barang" : "Tambah Barang";
+
+  document.getElementById("productCategory").value =
+    product
+      ? categories.find(c => c.id === product.category_id)?.name || ""
+      : "";
+
+  document.getElementById("productName").value = product?.name || "";
+  document.getElementById("productPrice").value = product?.sale_price ?? "";
+  document.getElementById("productStock").value =
+    product?.stock_quantity ?? 0;
+  document.getElementById("productMinimum").value =
+    product?.minimum_stock ?? 0;
+
+  document.getElementById("formMessage").textContent = "";
+  document.getElementById("productForm").style.display = "block";
+
+  updateStockFields();
+  document.getElementById("productForm").scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+}
+
+function editProduct(id) {
+  if (currentProfile?.role !== "admin") return;
+
+  const product = products.find(item => item.id === id);
+  if (product) openProductForm(product);
+}
+
+async function toggleProduct(product) {
+  if (currentProfile?.role !== "admin") return;
+
+  const action = product.is_active ? "menonaktifkan" : "mengaktifkan";
+
+  if (!confirm("Yakin ingin " + action + " barang " + product.name + "?")) {
+    return;
+  }
+
+  const { error } = await supabase
+    .from("products")
+    .update({ is_active: !product.is_active })
+    .eq("id", product.id);
+
+  if (error) {
+    showMessage("productMessage", error.message);
+    return;
+  }
+
+  showMessage("productMessage", "Status barang berhasil diperbarui.", "success");
+  await loadDataBarang();
+}
+
+document.getElementById("productCategory").addEventListener(
+  "change",
+  updateStockFields
+);
+
+document.getElementById("addProductButton").addEventListener("click", () => {
+  if (currentProfile?.role === "admin") openProductForm();
+});
+
+document.getElementById("cancelProductButton").addEventListener("click", () => {
+  document.getElementById("productForm").style.display = "none";
+  editingProductId = null;
+});
+
+document.getElementById("searchProduct").addEventListener("input", renderProducts);
+
+document.getElementById("productEntryForm").addEventListener(
+  "submit",
+  async (event) => {
+    event.preventDefault();
+
+    if (currentProfile?.role !== "admin") {
+      showMessage("formMessage", "Akses hanya untuk Admin.");
+      return;
+    }
+
+    const name = document.getElementById("productName").value.trim();
+    const categoryName = document.getElementById("productCategory").value;
+    const price = Number(document.getElementById("productPrice").value);
+
+    const isDrink = categoryName === "Minuman";
+
+    const stock = isDrink
+      ? 0
+      : Number(document.getElementById("productStock").value);
+
+    const minimum = isDrink
+      ? 0
+      : Number(document.getElementById("productMinimum").value);
+
+    const selectedCategoryId = categoryId(categoryName);
+
+    if (!selectedCategoryId) {
+      showMessage("formMessage", "Kategori barang tidak ditemukan.");
+      return;
+    }
+
+    if (
+      !name ||
+      !Number.isFinite(price) || price < 0 ||
+      !Number.isInteger(stock) || stock < 0 ||
+      !Number.isInteger(minimum) || minimum < 0
+    ) {
+      showMessage("formMessage", "Periksa kembali data barang.");
+      return;
+    }
+
+    const saveButton = document.getElementById("saveProductButton");
+    saveButton.disabled = true;
+    saveButton.textContent = "Menyimpan...";
+
+    const productData = {
+      name,
+      category_id: selectedCategoryId,
+      sale_price: price,
+      stock_mode: isDrink ? "shared_cups" : "per_product",
+      stock_quantity: stock,
+      minimum_stock: minimum
+    };
+
+    try {
+      let result;
+
+      if (editingProductId) {
+        result = await supabase
+          .from("products")
+          .update(productData)
+          .eq("id", editingProductId);
+      } else {
+        result = await supabase
+          .from("products")
+          .insert(productData);
+      }
+
+      if (result.error) throw result.error;
+
+      showMessage(
+        "formMessage",
+        editingProductId
+          ? "Barang berhasil diperbarui."
+          : "Barang berhasil ditambahkan.",
+        "success"
+      );
+
+      editingProductId = null;
+      document.getElementById("productForm").style.display = "none";
+      await loadDataBarang();
+
+    } catch (error) {
+      console.error(error);
+      showMessage("formMessage", error.message || "Gagal menyimpan barang.");
+    } finally {
+      saveButton.disabled = false;
+      saveButton.textContent = "Simpan Barang";
+    }
+  }
+);
 
 async function checkSession() {
   const { data: { session } } = await supabase.auth.getSession();
@@ -188,7 +611,13 @@ async function checkSession() {
     return;
   }
 
-  showDashboard(profile);
+  try {
+    await loadCategories();
+    showDashboard(profile);
+  } catch (error) {
+    console.error(error);
+    alert("Gagal memuat kategori: " + error.message);
+  }
 }
 
 loginForm.addEventListener("submit", async (event) => {
@@ -204,9 +633,7 @@ loginForm.addEventListener("submit", async (event) => {
   try {
     const { data, error } = await supabase.functions.invoke(
       "login-username",
-      {
-        body: { username, password }
-      }
+      { body: { username, password } }
     );
 
     if (error || !data?.session) {
@@ -223,6 +650,8 @@ loginForm.addEventListener("submit", async (event) => {
     if (sessionError) throw sessionError;
 
     document.getElementById("password").value = "";
+
+    await loadCategories();
     showDashboard(data.profile);
 
   } catch (error) {
@@ -237,14 +666,29 @@ loginForm.addEventListener("submit", async (event) => {
 
 document.getElementById("logoutButton").addEventListener("click", async () => {
   await supabase.auth.signOut();
+  currentProfile = null;
   dashboard.style.display = "none";
   loginPage.style.display = "flex";
   loginForm.reset();
   loginMessage.textContent = "";
 });
 
+document.getElementById("dashboardLink").addEventListener("click", event => {
+  event.preventDefault();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+document.getElementById("productsLink").addEventListener("click", event => {
+  event.preventDefault();
+  document.getElementById("productForm").scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+});
+
 supabase.auth.onAuthStateChange((event, session) => {
   if (event === "SIGNED_OUT" || !session) {
+    currentProfile = null;
     dashboard.style.display = "none";
     loginPage.style.display = "flex";
   }
