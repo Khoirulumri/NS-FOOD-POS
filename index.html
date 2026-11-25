@@ -33,7 +33,7 @@ input,select{width:100%;padding:12px;border:1px solid #dce5de;border-radius:8px;
 .login-box button{width:100%;padding:14px;margin-top:20px}
 #loginMessage{color:#c0392b;font-size:13px;text-align:center;margin-top:15px}
 #dashboard{display:none}
-#productForm{display:none;margin-top:18px;padding-top:18px;border-top:1px solid #e5ece7}
+#productForm,#cashierForm{display:none;margin-top:18px;padding-top:18px;border-top:1px solid #e5ece7}
 .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0 15px}
 .form-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
 .toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
@@ -106,9 +106,16 @@ header{padding:18px}
           <h3 style="margin-bottom:5px">Data Barang</h3>
           <div class="notice" id="productDescription">Daftar barang NS FOOD</div>
         </div>
-        <button id="addProductButton" class="primary" type="button" style="display:none">
-          + Tambah Barang
-        </button>
+
+        <div class="form-actions" style="margin-top:0">
+          <button id="addProductButton" class="primary" type="button" style="display:none">
+            + Tambah Barang
+          </button>
+
+          <button id="createCashierButton" class="primary" type="button" style="display:none">
+            + Buat Akun Kasir
+          </button>
+        </div>
       </div>
 
       <div id="productForm">
@@ -159,6 +166,65 @@ header{padding:18px}
             <button id="cancelProductButton" class="secondary" type="button">Batal</button>
           </div>
           <div id="formMessage" class="message"></div>
+        </form>
+      </div>
+
+      <div id="cashierForm">
+        <h3>Buat Akun Kasir Baru</h3>
+        <p class="notice">
+          Isi data berikut untuk membuat akun login Kasir NS FOOD.
+          Username dan password akan digunakan Kasir untuk masuk ke aplikasi.
+        </p>
+
+        <form id="cashierEntryForm">
+          <div class="form-grid">
+            <div>
+              <label for="cashierFullName">Nama Lengkap Kasir</label>
+              <input
+                id="cashierFullName"
+                type="text"
+                placeholder="Contoh: KASIR NS FOOD"
+                maxlength="100"
+                required
+              >
+            </div>
+
+            <div>
+              <label for="cashierUsername">Username Kasir</label>
+              <input
+                id="cashierUsername"
+                type="text"
+                placeholder="Contoh: kasirns"
+                minlength="3"
+                maxlength="30"
+                autocomplete="off"
+                required
+              >
+            </div>
+
+            <div>
+              <label for="cashierPassword">Password Kasir</label>
+              <input
+                id="cashierPassword"
+                type="password"
+                placeholder="Minimal 8 karakter"
+                minlength="8"
+                autocomplete="new-password"
+                required
+              >
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button id="saveCashierButton" class="primary" type="submit">
+              Buat Akun Kasir
+            </button>
+            <button id="cancelCashierButton" class="secondary" type="button">
+              Batal
+            </button>
+          </div>
+
+          <div id="cashierMessage" class="message"></div>
         </form>
       </div>
     </div>
@@ -258,8 +324,15 @@ function showDashboard(profile) {
   document.getElementById("addProductButton").style.display =
     isAdmin ? "inline-block" : "none";
 
+  document.getElementById("createCashierButton").style.display =
+    isAdmin ? "inline-block" : "none";
+
   document.getElementById("actionHeader").style.display =
     isAdmin ? "table-cell" : "none";
+
+  document.getElementById("cashierForm").style.display = "none";
+  document.getElementById("cashierEntryForm").reset();
+  document.getElementById("cashierMessage").textContent = "";
 
   loadDataBarang();
 }
@@ -495,6 +568,93 @@ document.getElementById("productCategory").addEventListener(
 document.getElementById("addProductButton").addEventListener("click", () => {
   if (currentProfile?.role === "admin") openProductForm();
 });
+
+document.getElementById("createCashierButton").addEventListener("click", () => {
+  if (currentProfile?.role !== "admin") return;
+
+  document.getElementById("cashierEntryForm").reset();
+  document.getElementById("cashierMessage").textContent = "";
+  document.getElementById("productForm").style.display = "none";
+  document.getElementById("cashierForm").style.display = "block";
+
+  document.getElementById("cashierForm").scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+});
+
+document.getElementById("cancelCashierButton").addEventListener("click", () => {
+  document.getElementById("cashierForm").style.display = "none";
+  document.getElementById("cashierEntryForm").reset();
+  document.getElementById("cashierMessage").textContent = "";
+});
+
+document.getElementById("cashierEntryForm").addEventListener(
+  "submit",
+  async (event) => {
+    event.preventDefault();
+
+    if (currentProfile?.role !== "admin") {
+      showMessage("cashierMessage", "Akses hanya untuk Admin.");
+      return;
+    }
+
+    const full_name = document.getElementById("cashierFullName").value.trim();
+    const username = document.getElementById("cashierUsername").value.trim().toLowerCase();
+    const password = document.getElementById("cashierPassword").value;
+
+    if (!full_name || !username || password.length < 8) {
+      showMessage("cashierMessage", "Periksa kembali data. Password minimal 8 karakter.");
+      return;
+    }
+
+    const saveButton = document.getElementById("saveCashierButton");
+    saveButton.disabled = true;
+    saveButton.textContent = "Membuat akun...";
+
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        "create-cashier",
+        {
+          body: {
+            username,
+            full_name,
+            password
+          }
+        }
+      );
+
+      if (error) {
+        throw new Error(
+          data?.message || error.message || "Gagal membuat akun Kasir."
+        );
+      }
+
+      if (data?.error || data?.success === false) {
+        throw new Error(data.message || "Gagal membuat akun Kasir.");
+      }
+
+      showMessage(
+        "cashierMessage",
+        data?.message || "Akun Kasir berhasil dibuat. Kasir sekarang dapat login menggunakan username dan password yang telah dibuat.",
+        "success"
+      );
+
+      document.getElementById("cashierEntryForm").reset();
+
+    } catch (error) {
+      console.error("Pembuatan akun Kasir gagal:", error);
+      showMessage(
+        "cashierMessage",
+        error.message || "Tidak dapat menghubungi server."
+      );
+    } finally {
+      document.getElementById("cashierPassword").value = "";
+      saveButton.disabled = false;
+      saveButton.textContent = "Buat Akun Kasir";
+    }
+  }
+);
 
 document.getElementById("cancelProductButton").addEventListener("click", () => {
   document.getElementById("productForm").style.display = "none";
