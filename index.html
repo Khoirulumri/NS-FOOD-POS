@@ -4,7 +4,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NS FOOD POS</title>
+<title>NS FOOD</title>
+
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;background:#f4f7f5;color:#26352d}
@@ -34,82 +35,223 @@ nav{display:flex;gap:9px;flex-wrap:wrap;margin-top:22px}
 nav a{background:white;border:1px solid #e1e9e3;color:#245a3d;text-decoration:none;padding:12px 16px;border-radius:9px;font-size:13px}
 nav a:hover{background:#e8f3ec}
 footer{text-align:center;color:#89958d;font-size:12px;padding:25px}
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{background:white;width:100%;max-width:390px;padding:30px;border-radius:15px;border:1px solid #e5ece7}
+.login-box h1{text-align:center;color:#145c3b;margin:0 0 8px}
+.login-box p{text-align:center;color:#718078;font-size:13px;margin-bottom:25px}
+.login-box label{display:block;font-size:13px;margin:15px 0 7px}
+.login-box input{width:100%;padding:13px;border:1px solid #dce5de;border-radius:8px;font-size:15px}
+.login-box button{width:100%;padding:14px;background:#145c3b;color:white;border:0;border-radius:8px;font-size:15px;margin-top:22px;cursor:pointer}
+.login-box button:disabled{opacity:.6;cursor:wait}
+#loginMessage{color:#c0392b;font-size:13px;text-align:center;margin-top:15px}
+#dashboard{display:none}
+#logoutButton{float:right;background:#fff;color:#145c3b;border:0;border-radius:7px;padding:9px 13px;cursor:pointer}
 @media(max-width:800px){.cards{grid-template-columns:repeat(2,1fr)}.section{grid-template-columns:1fr}}
 @media(max-width:420px){.container{padding:15px}.cards{gap:9px}.card{padding:13px}.card h3{font-size:19px}}
 </style>
 </head>
+
 <body>
-<header>
-<h1>NS FOOD POS</h1>
-<p>Sistem Kasir dan Manajemen Persediaan</p>
-</header>
 
-<main class="container">
-<div class="welcome">
-<h2>Dashboard</h2>
-<p>Selamat datang di sistem NS FOOD POS.</p>
-</div>
+<div id="loginPage" class="login-page">
+  <div class="login-box">
+    <h1>NS FOOD</h1>
+    <p>Sistem Kasir dan Manajemen Persediaan</p>
 
-<div class="cards">
-<div class="card">
-<small>Penjualan Hari Ini</small>
-<h3>Rp0</h3>
-<p>Total transaksi hari ini</p>
-</div>
-<div class="card">
-<small>Total Transaksi</small>
-<h3>0</h3>
-<p>Transaksi tercatat</p>
-</div>
-<div class="card">
-<small>Jumlah Produk</small>
-<h3>0</h3>
-<p>Produk terdaftar</p>
-</div>
-<div class="card">
-<small>Stok Menipis</small>
-<h3>0</h3>
-<p>Produk perlu diperiksa</p>
-</div>
+    <form id="loginForm">
+      <label for="username">Username</label>
+      <input id="username" type="text" placeholder="Masukkan username" autocomplete="username" required>
+
+      <label for="password">Password</label>
+      <input id="password" type="password" placeholder="Masukkan password" autocomplete="current-password" required>
+
+      <button id="loginButton" type="submit">Masuk</button>
+      <div id="loginMessage"></div>
+    </form>
+  </div>
 </div>
 
-<div class="section">
-<div class="panel">
-<h3>Grafik Penjualan Mingguan</h3>
-<div class="chart">
-<div class="bar-wrap"><div class="bar" style="height:8%"></div><span>Sen</span></div>
-<div class="bar-wrap"><div class="bar" style="height:8%"></div><span>Sel</span></div>
-<div class="bar-wrap"><div class="bar" style="height:8%"></div><span>Rab</span></div>
-<div class="bar-wrap"><div class="bar" style="height:8%"></div><span>Kam</span></div>
-<div class="bar-wrap"><div class="bar" style="height:8%"></div><span>Jum</span></div>
-<div class="bar-wrap"><div class="bar" style="height:8%"></div><span>Sab</span></div>
-<div class="bar-wrap"><div class="bar" style="height:8%"></div><span>Min</span></div>
-</div>
-<p style="font-size:11px;color:#89958d;margin-top:12px">Belum ada data penjualan.</p>
+<div id="dashboard">
+  <header>
+    <button id="logoutButton" type="button">Keluar</button>
+    <h1>NS FOOD</h1>
+    <p>Sistem Kasir dan Manajemen Persediaan</p>
+  </header>
+
+  <main class="container">
+    <div class="welcome">
+      <h2>Dashboard</h2>
+      <p>Selamat datang, <strong id="userName">Pengguna</strong>!</p>
+      <p id="userRole"></p>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <small>Penjualan Hari Ini</small>
+        <h3>Rp0</h3>
+        <p>Total transaksi hari ini</p>
+      </div>
+      <div class="card">
+        <small>Total Transaksi</small>
+        <h3>0</h3>
+        <p>Transaksi tercatat</p>
+      </div>
+      <div class="card">
+        <small>Jumlah Produk</small>
+        <h3>0</h3>
+        <p>Produk terdaftar</p>
+      </div>
+      <div class="card">
+        <small>Stok Menipis</small>
+        <h3>0</h3>
+        <p>Produk perlu diperiksa</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="panel">
+        <h3>Grafik Penjualan Mingguan</h3>
+        <div class="chart">
+          <div class="bar-wrap"><div class="bar" style="height:8%"></div><span>Sen</span></div>
+          <div class="bar-wrap"><div class="bar" style="height:8%"></div><span>Sel</span></div>
+          <div class="bar-wrap"><div class="bar" style="height:8%"></div><span>Rab</span></div>
+          <div class="bar-wrap"><div class="bar" style="height:8%"></div><span>Kam</span></div>
+          <div class="bar-wrap"><div class="bar" style="height:8%"></div><span>Jum</span></div>
+          <div class="bar-wrap"><div class="bar" style="height:8%"></div><span>Sab</span></div>
+          <div class="bar-wrap"><div class="bar" style="height:8%"></div><span>Min</span></div>
+        </div>
+        <p style="font-size:11px;color:#89958d;margin-top:12px">Belum ada data penjualan.</p>
+      </div>
+
+      <div class="panel">
+        <h3>Perhatian Stok Barang</h3>
+        <div class="stock-item">
+          <span>Belum ada data barang</span>
+          <span class="warning">-</span>
+        </div>
+        <p style="font-size:12px;color:#89958d">Peringatan stok akan muncul setelah data produk dimasukkan.</p>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:20px">
+      <h3>Menu Utama</h3>
+      <nav>
+        <a href="#">Dashboard</a>
+        <a href="#">Kasir</a>
+        <a href="#">Data Barang</a>
+        <a href="#">Barang Masuk</a>
+        <a href="#">Laporan</a>
+      </nav>
+    </div>
+  </main>
+
+  <footer>NS FOOD &copy; 2026</footer>
 </div>
 
-<div class="panel">
-<h3>Perhatian Stok Barang</h3>
-<div class="stock-item">
-<span>Belum ada data barang</span>
-<span class="warning">-</span>
-</div>
-<p style="font-size:12px;color:#89958d">Peringatan stok akan muncul setelah data produk dimasukkan.</p>
-</div>
-</div>
+<script type="module">
+import { createClient } from
+  "https://esm.sh/@supabase/supabase-js@2";
 
-<div class="panel" style="margin-top:20px">
-<h3>Menu Utama</h3>
-<nav>
-<a href="#">Dashboard</a>
-<a href="#">Kasir</a>
-<a href="#">Data Barang</a>
-<a href="#">Barang Masuk</a>
-<a href="#">Laporan</a>
-</nav>
-</div>
-</main>
+const SUPABASE_URL = "https://oumbiwxankqqygliiftz.supabase.co";
+const SUPABASE_KEY = "sb_publishable_KWvdJqM3QeG3WMzNMH_CNQ_FPREmZpC";
 
-<footer>NS FOOD POS &copy; 2026</footer>
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const loginPage = document.getElementById("loginPage");
+const dashboard = document.getElementById("dashboard");
+const loginForm = document.getElementById("loginForm");
+const loginButton = document.getElementById("loginButton");
+const loginMessage = document.getElementById("loginMessage");
+
+function showDashboard(profile) {
+  loginPage.style.display = "none";
+  dashboard.style.display = "block";
+  document.getElementById("userName").textContent =
+    profile.full_name || profile.username;
+  document.getElementById("userRole").textContent =
+    profile.role === "admin" ? "Admin" : "Kasir";
+}
+
+async function checkSession() {
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (!session) return;
+
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("full_name, username, role")
+    .eq("id", session.user.id)
+    .maybeSingle();
+
+  if (error || !profile) {
+    await supabase.auth.signOut();
+    return;
+  }
+
+  showDashboard(profile);
+}
+
+loginForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  loginButton.disabled = true;
+  loginButton.textContent = "Memeriksa...";
+  loginMessage.textContent = "";
+
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value;
+
+  try {
+    const { data, error } = await supabase.functions.invoke(
+      "login-username",
+      {
+        body: { username, password }
+      }
+    );
+
+    if (error || !data?.session) {
+      throw new Error(
+        data?.message || error?.message || "Login gagal"
+      );
+    }
+
+    const { error: sessionError } = await supabase.auth.setSession({
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token
+    });
+
+    if (sessionError) throw sessionError;
+
+    document.getElementById("password").value = "";
+    showDashboard(data.profile);
+
+  } catch (error) {
+    console.error("Login gagal:", error);
+    loginMessage.textContent =
+      error.message || "Tidak dapat menghubungi server.";
+  } finally {
+    loginButton.disabled = false;
+    loginButton.textContent = "Masuk";
+  }
+});
+
+document.getElementById("logoutButton").addEventListener("click", async () => {
+  await supabase.auth.signOut();
+  dashboard.style.display = "none";
+  loginPage.style.display = "flex";
+  loginForm.reset();
+  loginMessage.textContent = "";
+});
+
+supabase.auth.onAuthStateChange((event, session) => {
+  if (event === "SIGNED_OUT" || !session) {
+    dashboard.style.display = "none";
+    loginPage.style.display = "flex";
+  }
+});
+
+checkSession();
+</script>
+
 </body>
 </html>
