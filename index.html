@@ -262,12 +262,18 @@ body.signed-in #appHeader{display:none}
 <script type="module">
 const SUPABASE_URL = "https://oumbiwxankqqygliiftz.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_KWvdJqM3QeG3WMzNMH_CNQ_FPREmZpC";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Jangan menggunakan sesi lama yang tersimpan oleh versi aplikasi sebelumnya.
+// Sesi baru hanya berada di memori tab; refresh meminta login ulang.
+try { localStorage.removeItem('sb-' + new URL(SUPABASE_URL).hostname.split('.')[0] + '-auth-token'); } catch {}
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+ auth: {persistSession:false, autoRefreshToken:true, detectSessionInUrl:false, storageKey:'ns-food-auth-v2'}
+});
 
 const $ = id => document.getElementById(id);
 const rupiah = value => "Rp" + Number(value || 0).toLocaleString("id-ID");
 const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 let currentUser = null;
+let loginBusy=false, logoutBusy=false;
 let categories = [];
 let products = [];
 let drinkInventory = null;
@@ -358,12 +364,13 @@ function updateChange(){
  $("payButton").disabled=paymentBusy||!cart.length||cash<total||total<=0||!!cartStockError();
 }
 function saveDraft(){
- try{localStorage.setItem(DRAFT_KEY,JSON.stringify({items:cart,cash:$("cashReceived").value||""}));}catch(e){console.warn("Draft tidak dapat disimpan",e);}
+ try{localStorage.setItem(DRAFT_KEY,JSON.stringify({owner:currentUser?.id,items:cart,cash:$("cashReceived").value||""}));}catch(e){console.warn("Draft tidak dapat disimpan",e);}
 }
 function restoreOrderDraft(){
  try{
   const raw=localStorage.getItem(DRAFT_KEY); if(!raw)return;
   const draft=JSON.parse(raw);
+  if(!currentUser?.id||draft.owner!==currentUser.id){localStorage.removeItem(DRAFT_KEY);return;}
   cart=(Array.isArray(draft.items)?draft.items:[]).filter(item=>products.some(p=>p.id===item.id&&p.is_active)).map(item=>{
    const p=products.find(x=>x.id===item.id); return {...p,quantity:Math.max(1,Number(item.quantity)||1)};
   });
@@ -561,6 +568,9 @@ async function processPayment(){
  paymentBusy=true;$("cashReceived").disabled=true;$("payButton").disabled=true;setMessage("posMessage","Memproses transaksi...");
  const items=cart.map(item=>({product_id:item.id,quantity:item.quantity}));
  try{
+  const actor=currentUser;
+  await verifyAccount(actor);
+  if(currentUser!==actor)throw new Error('Sesi pengguna berubah. Pembayaran dibatalkan.');
   const {data,error}=await supabase.rpc("process_sale",{p_items:items,p_discount:0,p_payment_amount:payment});
   if(error)throw error;
   cart=[];$("cashReceived").value="";try{localStorage.removeItem(DRAFT_KEY);}catch{}renderCart();
@@ -574,28 +584,65 @@ async function processPayment(){
  }catch(error){setMessage("posMessage","Transaksi gagal: "+(error.message||"Stok mungkin berubah. Periksa stok lalu coba kembali."));}
  finally{paymentBusy=false;$("cashReceived").disabled=false;updateChange();}
 }
-async function login(event){
- event.preventDefault();$("loginButton").disabled=true;setMessage("loginMessage","Memeriksa akun...");
- const username=$("username").value.trim(),password=$("password").value;
- try{
-  const {data,error}=await supabase.functions.invoke("login-username",{body:{username,password}});
-  if(error)throw error;
-  if(data?.error)throw new Error(data.error);
-  const profile=data?.profile||data?.user;
-  if(!profile||!profile.role)throw new Error("Data profil tidak lengkap dari fungsi login.");
-  currentUser=profile;
-  if(!isAdmin()&&!isCashier())throw new Error("Peran akun tidak dikenali.");
-  showDashboard();
-  await loadCategories();await loadDataBarang();restoreOrderDraft();renderProducts();
-  setMessage("loginMessage","");
-  if(isAdmin()) void loadSales();
- }catch(error){currentUser=null;showLogin();setMessage("loginMessage","Login gagal: "+(error.message||"Periksa username dan password."));}
- finally{$("loginButton").disabled=false;}
+async function endAuthSession(){
+ const {data,error}=await supabase.auth.getSession();
+ if(error)throw error;
+ if(data?.session){const {error:signOutError}=await supabase.auth.signOut({scope:'local'});if(signOutError)throw signOutError;}
 }
-function logout(){
- resetCashierViews();
- resetReceiptViews();
- currentUser=null;cart=[];salesVersion++;salesRows=null;clearSalesViews();localStorage.removeItem(DRAFT_KEY);$("loginForm").reset();$("cashReceived").value="";renderCart();showLogin();setMessage("loginMessage","");
+function clearAccountViews(){
+ currentUser=null;cart=[];categories=[];products=[];drinkInventory=null;
+ showLogin();resetCashierViews();resetReceiptViews();closeProductForm();
+ salesVersion++;salesRows=null;historyPage=0;clearSalesViews();
+ try{localStorage.removeItem(DRAFT_KEY);}catch{}
+ $('loginForm').reset();$('cashReceived').value='';$('posSearch').value='';$('searchProduct').value='';
+ $('productTable').querySelector('tbody').innerHTML='';$('stockWarnings').textContent='';
+ $('posProductGrid').textContent='';$('productCategory').innerHTML='';
+ ['metricProducts','metricLow','metricCups'].forEach(id=>$(id).textContent='—');
+ ['posMessage','productMessage','cupMessage','formMessage','salesNotice','historyMessage','reportMessage'].forEach(id=>setMessage(id,''));
+ renderCart();
+}
+async function verifyAccount(actor){
+ const {data,error}=await supabase.auth.getUser();
+ if(error||!data?.user||!actor?.id||String(data.user.id)!==String(actor.id))throw new Error('Identitas sesi tidak sesuai atau tidak dapat diverifikasi. Silakan keluar dan login kembali.');
+ return data.user;
+}
+async function login(event){
+ event.preventDefault();if(loginBusy||logoutBusy||paymentBusy||currentUser)return;
+ loginBusy=true;$('loginButton').disabled=true;setMessage('loginMessage','Memeriksa akun...');
+ const username=$('username').value.trim().toLowerCase(),password=$('password').value;
+ try{
+  await endAuthSession();
+  const {data,error}=await supabase.functions.invoke('login-username',{body:{username,password}});
+  if(error){let msg='Login ditolak atau koneksi bermasalah.';try{const body=await error.context?.json();if(typeof body?.message==='string')msg=body.message;}catch{}throw new Error(msg);}
+  const profile=data?.profile, session=data?.session;
+  if(!profile?.id||!profile.role||!session?.access_token||!session?.refresh_token)throw new Error('Profil atau sesi login tidak lengkap.');
+  const {data:installed,error:installError}=await supabase.auth.setSession({access_token:session.access_token,refresh_token:session.refresh_token});
+  if(installError)throw installError;
+  if(String(installed?.session?.user?.id)!==String(profile.id))throw new Error('Sesi login tidak sesuai dengan profil.');
+  await verifyAccount(profile);
+  const {data:verified,error:profileError}=await supabase.from('profiles').select('id,full_name,username,role').eq('id',profile.id).single();
+  if(profileError)throw profileError;
+  if(!verified||String(verified.id)!==String(profile.id)||String(verified.username).toLowerCase()!==username||verified.role!==profile.role||!['admin','cashier','kasir'].includes(String(verified.role).toLowerCase()))throw new Error('Profil atau peran akun tidak sesuai.');
+  currentUser=verified;
+  await loadCategories();await loadDataBarang();
+  await verifyAccount(verified);if(currentUser!==verified)throw new Error('Sesi login telah berakhir.');
+  restoreOrderDraft();renderProducts();showDashboard();
+  $('password').value='';setMessage('loginMessage','');
+  if(isAdmin())void loadSales();
+ }catch(error){
+  clearAccountViews();
+  let cleanup='';try{await endAuthSession();}catch{cleanup=' Sesi gagal dibersihkan. Muat ulang halaman sebelum mencoba lagi.';}
+  setMessage('loginMessage','Login gagal: '+(error.message||'Periksa username dan password.')+cleanup);
+ }finally{loginBusy=false;$('loginButton').disabled=false;}
+}
+async function logout(){
+ if(loginBusy||logoutBusy||paymentBusy||cashierEditBusy||cashierResetBusy)return;
+ if(['saveProductButton','saveCashierButton','addCupButton','saveCupMinimum'].some(id=>$(id)?.disabled))return;
+ logoutBusy=true;$('loginButton').disabled=true;
+ clearAccountViews();setMessage('loginMessage','Mengakhiri sesi...');
+ try{await endAuthSession();setMessage('loginMessage','');}
+ catch{setMessage('loginMessage','Aplikasi sudah dikunci, tetapi pengakhiran sesi belum terkonfirmasi. Muat ulang halaman atau coba login kembali saat koneksi tersedia.');}
+ finally{logoutBusy=false;$('loginButton').disabled=false;}
 }
 let paymentBusy=false, salesRows=null, salesVersion=0, historyPage=0;
 const titles={overview:"Dashboard",pos:"Kasir / POS",inventory:"Persediaan Stok",history:"Riwayat Transaksi",reports:"Laporan Penjualan",cashiers:"Manajemen Kasir",settings:"Pengaturan"};
@@ -651,7 +698,8 @@ async function loadSales(){
   const rows=[];const chunk=500;
   for(let offset=0;;offset+=chunk){
    if(offset>=50000)throw new Error('Data terlalu banyak untuk rekap ini. Diperlukan laporan server.');
-   const {data,error}=await supabase.from('sales').select('*').order('id',{ascending:true}).range(offset,offset+chunk-1);
+   let query=supabase.from('sales').select('*');if(!isAdmin())query=query.eq('cashier_id',user.id);
+   const {data,error}=await query.order('id',{ascending:true}).range(offset,offset+chunk-1);
    if(version!==salesVersion||currentUser!==user)return;
    if(error)throw error;const batch=data||[];rows.push(...batch);if(batch.length<chunk)break;
   }
@@ -825,7 +873,7 @@ async function openSaleReceipt(id,afterPayment=false){
  $('receiptDialogTitle').textContent=afterPayment?'Pembayaran Berhasil':'Detail Transaksi';$('receiptPreview').hidden=true;$('receiptPreview').innerHTML='';$('printReceipt').disabled=true;setMessage('receiptMessage','Memuat struk transaksi...');if(!$('receiptDialog').open)$('receiptDialog').showModal();
  try{
   const {data:sale,error}=await supabase.from('sales').select('id,invoice_number,cashier_id,total_amount,discount,payment_amount,change_amount,created_at').eq('id',id).maybeSingle();
-  if(error)throw error;if(!sale)throw new Error('Transaksi tidak ditemukan atau akses ditolak.');
+  if(error)throw error;if(!sale||(!isAdmin()&&String(sale.cashier_id)!==String(user.id)))throw new Error('Transaksi tidak ditemukan atau akses ditolak.');
   const items=[];for(let offset=0;;offset+=500){const {data,error}=await supabase.from('sale_items').select('id,product_name,quantity,unit_price,subtotal').eq('sale_id',id).order('id').range(offset,offset+499);if(error)throw error;items.push(...(data||[]));if((data||[]).length<500)break;}
   if(!items.length)throw new Error('Rincian produk tidak tersedia.');
   let cashier='Tidak tersedia';if(sale.cashier_id){const {data:profile}=await supabase.from('profiles').select('full_name,username').eq('id',sale.cashier_id).maybeSingle();cashier=profile?.full_name||profile?.username||'Tidak tersedia';}
@@ -843,6 +891,12 @@ $('receiptDialog').addEventListener('cancel',e=>{e.preventDefault();closeReceipt
 $('printReceipt').addEventListener('click',()=>{if(!activeReceipt||!currentUser)return;$('receiptPrintRoot').innerHTML=receiptHTML(activeReceipt.r,activeReceipt.settings);document.body.classList.add('receipt-printing');try{window.print();}catch{document.body.classList.remove('receipt-printing');setMessage('receiptMessage','Dialog cetak gagal dibuka. Periksa layanan cetak perangkat.');}});
 window.addEventListener('afterprint',()=>{document.body.classList.remove('receipt-printing');$('receiptPrintRoot').innerHTML='';});
 
+// Callback sinkron: jangan memanggil API Auth dari dalam callback Auth.
+supabase.auth.onAuthStateChange((event,session)=>{
+ if(currentUser&&(event==='SIGNED_OUT'||!session?.user||String(session.user.id)!==String(currentUser.id))){
+  clearAccountViews();setMessage('loginMessage','Sesi berakhir atau berubah. Silakan login kembali.');
+ }
+});
 renderCart();
 </script>
 </body>
