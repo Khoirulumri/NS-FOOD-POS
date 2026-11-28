@@ -252,6 +252,7 @@ let activePOSCategory = "Semua";
 const DRAFT_KEY = "ns_food_order_draft_v1";
 
 function isAdmin(){ return String(currentUser?.role || "").toLowerCase() === "admin"; }
+function isCashier(){ return ["cashier","kasir"].includes(String(currentUser?.role || "").toLowerCase()); }
 function setMessage(id, message, ok=false){ const el=$(id); if(!el)return; el.textContent=message||""; el.className="message"+(ok?" ok":""); }
 function showLogin(){
  document.body.classList.remove("signed-in"); $("loginPage").style.display="block"; $("dashboard").style.display="none"; $("headerUser").style.display="none"; closeMenu();
@@ -492,7 +493,7 @@ async function createCashier(event){
 }
 async function processPayment(){
  if(paymentBusy)return;
- if(!cart.length||!isAdmin()&&String(currentUser?.role||"").toLowerCase()!=="kasir")return;
+ if(!cart.length||(!isAdmin()&&!isCashier()))return;
  const total=cartTotal(),payment=Number($("cashReceived").value||0);
  if(payment<total){setMessage("posMessage","Uang diterima belum mencukupi.");return;}
  const stockError=cartStockError();if(stockError){setMessage("posMessage",stockError);return;}
@@ -518,8 +519,7 @@ async function login(event){
   const profile=data?.profile||data?.user;
   if(!profile||!profile.role)throw new Error("Data profil tidak lengkap dari fungsi login.");
   currentUser=profile;
-  const role=String(currentUser.role).toLowerCase();
-  if(!["admin","kasir"].includes(role))throw new Error("Peran akun tidak dikenali.");
+  if(!isAdmin()&&!isCashier())throw new Error("Peran akun tidak dikenali.");
   showDashboard();
   await loadCategories();await loadDataBarang();restoreOrderDraft();renderProducts();
   setMessage("loginMessage","");
