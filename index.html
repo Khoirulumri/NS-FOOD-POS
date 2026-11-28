@@ -446,7 +446,7 @@ async function saveProduct(event){
  $("saveProductButton").disabled=true;setMessage("formMessage","Menyimpan barang...");
  try{
   const imageUrl=await uploadProductImage($("productImage").files[0]);
-  const payload={name,category_id:categoryId,sale_price:price,stock_mode:drink?"shared_cups":"individual",stock_quantity:stock,minimum_stock:minimum,image_url:imageUrl,is_active:editingProductId?(products.find(p=>String(p.id)===String(editingProductId))?.is_active??true):true};
+  const payload={name,category_id:categoryId,sale_price:price,stock_mode:drink?"shared_cups":"per_product",stock_quantity:stock,minimum_stock:minimum,image_url:imageUrl,is_active:editingProductId?(products.find(p=>String(p.id)===String(editingProductId))?.is_active??true):true};
   let result;
   if(editingProductId) result=await supabase.from("products").update(payload).eq("id",editingProductId);
   else result=await supabase.from("products").insert(payload);
