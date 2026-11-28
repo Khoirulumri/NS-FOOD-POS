@@ -47,6 +47,8 @@ td{vertical-align:middle}
 .status.off{background:#f0f0f0;color:#777}
 .actions{display:flex;gap:6px;flex-wrap:wrap}
 .actions button{padding:7px 9px;font-size:11px}
+.product-thumb{width:54px;height:54px;object-fit:cover;border-radius:8px;border:1px solid #e5ece7;background:#f4f7f5}
+.image-preview{display:none;width:110px;height:110px;object-fit:cover;border-radius:9px;border:1px solid #dce5de;margin-top:10px}
 .stock-low{color:#c07820;font-weight:bold}
 .stock-ok{color:#28734a}
 .notice{font-size:12px;color:#718078;line-height:1.6}
@@ -140,6 +142,13 @@ header{padding:18px}
             <div>
               <label for="productPrice">Harga Jual (Rp)</label>
               <input id="productPrice" type="number" min="0" step="1" placeholder="Contoh: 10000" required>
+            </div>
+
+            <div>
+              <label for="productImage">Foto Produk (JPG, PNG, WEBP)</label>
+              <input id="productImage" type="file" accept="image/jpeg,image/png,image/webp">
+              <img id="imagePreview" class="image-preview" alt="Pratinjau foto produk">
+              <div class="notice">Maksimal ukuran foto 5 MB. Kosongkan jika tidak ingin mengganti foto saat mengedit.</div>
             </div>
           </div>
 
@@ -239,6 +248,7 @@ header{padding:18px}
         <table>
           <thead>
             <tr>
+              <th>Foto</th>
               <th>Nama Barang</th>
               <th>Kategori</th>
               <th>Harga Jual</th>
@@ -248,7 +258,7 @@ header{padding:18px}
             </tr>
           </thead>
           <tbody id="productTable">
-            <tr><td colspan="6">Memuat data barang...</td></tr>
+            <tr><td colspan="7">Memuat data barang...</td></tr>
           </tbody>
         </table>
       </div>
@@ -289,6 +299,7 @@ let currentProfile = null;
 let categories = [];
 let products = [];
 let editingProductId = null;
+let editingProductImageUrl = null;
 let drinkInventory = null;
 
 const categoryId = (name) =>
@@ -349,7 +360,7 @@ async function loadCategories() {
 
 async function loadDataBarang() {
   const table = document.getElementById("productTable");
-  table.innerHTML = '<tr><td colspan="6">Memuat data barang...</td></tr>';
+  table.innerHTML = '<tr><td colspan="7">Memuat data barang...</td></tr>';
 
   try {
     const [productResult, drinkResult] = await Promise.all([
@@ -369,7 +380,7 @@ async function loadDataBarang() {
   } catch (error) {
     console.error(error);
     table.innerHTML =
-      '<tr><td colspan="6">Gagal memuat data barang.</td></tr>';
+      '<tr><td colspan="7">Gagal memuat data barang.</td></tr>';
     showMessage("productMessage", error.message);
   }
 }
@@ -415,7 +426,7 @@ function renderProducts() {
 
   if (visibleProducts.length === 0) {
     table.innerHTML =
-      '<tr><td colspan="6">Belum ada barang yang ditemukan.</td></tr>';
+      '<tr><td colspan="7">Belum ada barang yang ditemukan.</td></tr>';
     return;
   }
 
@@ -442,6 +453,18 @@ function renderProducts() {
 
     const row = document.createElement("tr");
 
+    const imageCell = document.createElement("td");
+    if (product.image_url) {
+      const image = document.createElement("img");
+      image.className = "product-thumb";
+      image.src = product.image_url;
+      image.alt = "Foto " + product.name;
+      image.loading = "lazy";
+      imageCell.appendChild(image);
+    } else {
+      imageCell.textContent = "—";
+    }
+
     const nameCell = document.createElement("td");
     nameCell.textContent = product.name;
 
@@ -461,7 +484,7 @@ function renderProducts() {
     status.textContent = product.is_active ? "Aktif" : "Nonaktif";
     statusCell.appendChild(status);
 
-    row.append(nameCell, categoryCell, priceCell, stockCell, statusCell);
+    row.append(imageCell, nameCell, categoryCell, priceCell, stockCell, statusCell);
 
     if (isAdmin) {
       const actionCell = document.createElement("td");
@@ -505,6 +528,10 @@ function openProductForm(product = null) {
   editingProductId = product?.id || null;
 
   document.getElementById("productEntryForm").reset();
+  editingProductImageUrl = product?.image_url || null;
+  const imagePreview = document.getElementById("imagePreview");
+  imagePreview.src = editingProductImageUrl || "";
+  imagePreview.style.display = editingProductImageUrl ? "block" : "none";
   document.getElementById("formTitle").textContent =
     product ? "Edit Barang" : "Tambah Barang";
 
@@ -564,6 +591,30 @@ document.getElementById("productCategory").addEventListener(
   "change",
   updateStockFields
 );
+
+document.getElementById("productImage").addEventListener("change", event => {
+  const file = event.target.files?.[0];
+  const preview = document.getElementById("imagePreview");
+
+  if (!file) {
+    preview.src = editingProductImageUrl || "";
+    preview.style.display = editingProductImageUrl ? "block" : "none";
+    return;
+  }
+
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+  if (!allowedTypes.includes(file.type) || file.size > 5 * 1024 * 1024) {
+    event.target.value = "";
+    preview.src = editingProductImageUrl || "";
+    preview.style.display = editingProductImageUrl ? "block" : "none";
+    showMessage("formMessage", "Pilih foto JPG, PNG, atau WEBP dengan ukuran maksimal 5 MB.");
+    return;
+  }
+
+  preview.src = URL.createObjectURL(file);
+  preview.style.display = "block";
+  document.getElementById("formMessage").textContent = "";
+});
 
 document.getElementById("addProductButton").addEventListener("click", () => {
   if (currentProfile?.role === "admin") openProductForm();
@@ -659,6 +710,9 @@ document.getElementById("cashierEntryForm").addEventListener(
 document.getElementById("cancelProductButton").addEventListener("click", () => {
   document.getElementById("productForm").style.display = "none";
   editingProductId = null;
+  editingProductImageUrl = null;
+  document.getElementById("productImage").value = "";
+  document.getElementById("imagePreview").style.display = "none";
 });
 
 document.getElementById("searchProduct").addEventListener("input", renderProducts);
@@ -714,10 +768,37 @@ document.getElementById("productEntryForm").addEventListener(
       sale_price: price,
       stock_mode: isDrink ? "shared_cups" : "per_product",
       stock_quantity: stock,
-      minimum_stock: minimum
+      minimum_stock: minimum,
+      image_url: editingProductImageUrl
     };
 
     try {
+      const imageFile = document.getElementById("productImage").files?.[0];
+
+      if (imageFile) {
+        if (currentProfile?.role !== "admin") {
+          throw new Error("Akses unggah foto hanya untuk Admin.");
+        }
+
+        const extension = imageFile.name.split(".").pop().toLowerCase();
+        const filePath = "products/" + crypto.randomUUID() + "." + extension;
+
+        const { error: uploadError } = await supabase.storage
+          .from("product-images")
+          .upload(filePath, imageFile, {
+            contentType: imageFile.type,
+            upsert: false
+          });
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabase.storage
+          .from("product-images")
+          .getPublicUrl(filePath);
+
+        productData.image_url = publicUrlData.publicUrl;
+      }
+
       let result;
 
       if (editingProductId) {
@@ -742,6 +823,9 @@ document.getElementById("productEntryForm").addEventListener(
       );
 
       editingProductId = null;
+      editingProductImageUrl = null;
+      document.getElementById("productImage").value = "";
+      document.getElementById("imagePreview").style.display = "none";
       document.getElementById("productForm").style.display = "none";
       await loadDataBarang();
 
