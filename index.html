@@ -101,6 +101,8 @@ body.signed-in #appHeader{display:none}
 @media print{body.receipt-printing{margin:0!important;background:white!important;color:black!important}body.receipt-printing>*:not(#receiptPrintRoot){display:none!important}body.receipt-printing #receiptPrintRoot{display:block!important;margin:0!important;padding:0!important}body.receipt-printing .receipt-paper{max-width:none;margin:0;padding:1mm 0;color:#000;background:white}body.receipt-printing .receipt-rule{border-color:#000}}
 
 .category-sales-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.category-sales-card{background:#f5f9f6;border:1px solid var(--line);padding:15px;border-radius:10px;min-width:0}.category-sales-card small{display:block;color:var(--muted);font-size:12px}.category-sales-card strong{display:block;font-size:clamp(20px,2.3vw,28px);color:var(--green);margin:6px 0;overflow-wrap:anywhere}.category-sales-card .metric-icon{margin-bottom:8px}.category-sales-bar{display:flex;height:12px;border-radius:20px;overflow:hidden;background:#edf2ee;margin-top:15px}.category-sales-bar span{height:100%;width:0}.category-sales-bar .food{background:#145c3b}.category-sales-bar .drink{background:#89b99e}.category-sales-bar .other{background:#a0a7a3}.category-sales-note{font-size:12px;color:var(--muted);margin:10px 0 0;line-height:1.5}.category-sales-other{margin-top:12px;font-size:13px;color:var(--muted)}.category-sales-other strong{color:var(--text)}@media(max-width:420px){.category-sales-card{padding:10px}.category-sales-card strong{font-size:19px}}
+
+.report-category-filter{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;background:#edf3ef;border:1px solid var(--line);padding:5px;border-radius:10px;margin:6px 0 16px;max-width:520px}.report-category-filter button{background:transparent;color:var(--green);padding:10px 4px;min-width:0;font-size:13px;white-space:normal}.report-category-filter button[aria-pressed=true]{background:var(--green);color:#fff}.report-category-filter button:focus-visible{outline:2px solid #73a88a;outline-offset:2px}#reportCategoryNote{margin:0 0 15px}
 </style>
 </head>
 <body>
@@ -243,7 +245,7 @@ body.signed-in #appHeader{display:none}
   </div>
  </section>
  <section data-view="history" hidden><article class="panel"><div class="panel-heading"><div><h2>Riwayat Transaksi</h2><p>Transaksi tersimpan di database.</p></div><button class="secondary small" data-refresh-sales>Perbarui</button></div><div id="historyMessage" class="message" role="status"></div><div class="table-wrap"><table class="sales-table"><thead><tr><th>Transaksi</th><th>Waktu (WIB)</th><th>Total</th><th>Aksi</th></tr></thead><tbody id="historyRows"></tbody></table></div><div class="history-nav"><button id="historyPrev" class="secondary small">Sebelumnya</button><span id="historyPageLabel"></span><button id="historyNext" class="secondary small">Berikutnya</button></div></article></section>
- <section data-view="reports" hidden><article class="panel"><div class="panel-heading"><div><h2>Laporan Penjualan</h2><p>Rekap berdasarkan tanggal transaksi (WIB).</p></div><button class="secondary small" data-refresh-sales>Perbarui</button></div><div class="two-col"><div class="field"><label for="reportFrom">Dari tanggal</label><input type="date" id="reportFrom"></div><div class="field"><label for="reportTo">Sampai tanggal</label><input type="date" id="reportTo"></div></div><div id="reportMessage" class="message" role="status"></div><div class="report-metrics"><div><small>Total penjualan</small><strong id="reportRevenue">—</strong></div><div><small>Jumlah transaksi</small><strong id="reportCount">—</strong></div></div><div class="table-wrap"><table class="sales-table"><thead><tr><th>Tanggal</th><th>Transaksi</th><th>Penjualan</th></tr></thead><tbody id="reportRows"></tbody></table></div></article></section>
+ <section data-view="reports" hidden><article class="panel"><div class="panel-heading"><div><h2>Laporan Penjualan</h2><p>Rekap berdasarkan tanggal transaksi (WIB).</p></div><button class="secondary small" data-refresh-sales>Perbarui</button></div><div class="two-col"><div class="field"><label for="reportFrom">Dari tanggal</label><input type="date" id="reportFrom"></div><div class="field"><label for="reportTo">Sampai tanggal</label><input type="date" id="reportTo"></div></div><div class="report-category-filter" id="reportCategoryFilter" role="group" aria-label="Kategori laporan"><button type="button" data-report-category="all" aria-pressed="true">Keseluruhan</button><button type="button" data-report-category="food" aria-pressed="false">Makanan</button><button type="button" data-report-category="drink" aria-pressed="false">Minuman</button></div><div id="reportMessage" class="message" role="status"></div><div class="report-metrics"><div><small id="reportRevenueLabel">Total penjualan</small><strong id="reportRevenue">—</strong></div><div><small>Jumlah transaksi</small><strong id="reportCount">—</strong></div></div><p id="reportCategoryNote" class="category-sales-note" hidden></p><div class="table-wrap"><table class="sales-table"><thead><tr><th>Tanggal</th><th>Transaksi</th><th>Penjualan</th></tr></thead><tbody id="reportRows"></tbody></table></div></article></section>
  <section data-view="cashiers" hidden><article class="panel"><div class="panel-heading"><div><h2>Manajemen Kasir</h2><p>Kelola profil dan akun kasir NS FOOD.</p></div><button id="createCashierButton" type="button">+ Buat Akun Kasir</button></div><div id="cashierSuccess" class="message" role="status"></div>    <div id="cashierForm">
      <h3>Buat Akun Kasir</h3>
      <form id="cashierEntryForm">
@@ -605,7 +607,7 @@ async function endAuthSession(){
 function clearAccountViews(){
  currentUser=null;cart=[];categories=[];products=[];drinkInventory=null;
  showLogin();resetCashierViews();resetReceiptViews();closeProductForm();
- salesVersion++;salesRows=null;historyPage=0;clearSalesViews();
+ salesVersion++;salesRows=null;historyPage=0;selectReportCategory('all');clearSalesViews();
  try{localStorage.removeItem(DRAFT_KEY);}catch{}
  $('loginForm').reset();$('cashReceived').value='';$('posSearch').value='';$('searchProduct').value='';
  $('productTable').querySelector('tbody').innerHTML='';$('stockWarnings').textContent='';
@@ -688,6 +690,7 @@ function renderStockOverview(){
  $('stockWarnings').innerHTML=low.map(p=>warning(p.name,Number(p.stock_quantity||0),'pcs',Number(p.minimum_stock||0))).join('')+(cupLow?warning('Cup minuman bersama',cups,'cup',cupMin):'')||'<div class="empty">Tidak ada peringatan stok.</div>';
 }
 function clearSalesViews(message='Data penjualan belum tersedia.'){
+ $('reportCategoryNote').hidden=true;$('reportCategoryNote').textContent='';
  clearCategorySales(message);
  $('metricRevenue').textContent='—';$('metricTransactions').textContent='—';$('reportRevenue').textContent='—';$('reportCount').textContent='—';
  $('salesChart').textContent=message;
@@ -750,16 +753,12 @@ function renderCategorySales(totals, netTotal){
  $('categorySalesNote').textContent=note;
  setMessage('categorySalesMessage','');
 }
-async function loadCategorySales(daily,user,version){
- const stillCurrent=()=>currentUser===user&&isAdmin()&&version===salesVersion;
- if(!stillCurrent())return;
- clearCategorySales('Memuat penjualan per kategori...');
- try{
-  const items=[];const saleIds=daily.map(r=>r.saleId);
+async function fetchCategoryDetails(rows,stillCurrent){
+  const items=[];const saleIds=rows.map(r=>r.saleId);
   for(let start=0;start<saleIds.length;start+=100){
    for(let offset=0;;offset+=500){
     const {data,error}=await supabase.from('sale_items').select('id,sale_id,product_id,subtotal').in('sale_id',saleIds.slice(start,start+100)).order('id',{ascending:true}).range(offset,offset+499);
-    if(!stillCurrent())return;if(error)throw error;
+    if(!stillCurrent())return null;if(error)throw error;
     const batch=data||[];items.push(...batch);if(batch.length<500)break;
    }
   }
@@ -769,22 +768,83 @@ async function loadCategorySales(daily,user,version){
   const productCategories=new Map();
   if(ids.length){
    const {data:categoryData,error:categoryError}=await supabase.from('categories').select('id,name');
-   if(!stillCurrent())return;if(categoryError)throw categoryError;
+   if(!stillCurrent())return null;if(categoryError)throw categoryError;
    const names=new Map((categoryData||[]).map(c=>[String(c.id),c.name]));
    for(let start=0;start<ids.length;start+=100){
     const {data,error}=await supabase.from('products').select('id,category_id').in('id',ids.slice(start,start+100));
-    if(!stillCurrent())return;if(error)throw error;
+    if(!stillCurrent())return null;if(error)throw error;
     for(const p of data||[])productCategories.set(String(p.id),names.get(String(p.category_id)));
    }
   }
-  if(stillCurrent())renderCategorySales(calculateCategorySales(items,productCategories),sumSales(daily));
+ return {items,productCategories};
+}
+async function loadCategorySales(daily,user,version){
+ const stillCurrent=()=>currentUser===user&&isAdmin()&&version===salesVersion;
+ if(!stillCurrent())return;
+ clearCategorySales('Memuat penjualan per kategori...');
+ try{
+  const details=await fetchCategoryDetails(daily,stillCurrent);
+  if(details&&stillCurrent())renderCategorySales(calculateCategorySales(details.items,details.productCategories),sumSales(daily));
  }catch(error){if(stillCurrent())clearCategorySales('Gagal memuat penjualan per kategori: '+(error.message||'Periksa koneksi dan izin Supabase.'));}
 }
 function sumSales(rows){return rows.reduce((sum,r)=>sum+r.amount,0);}
 function saleRowsHTML(rows,detail=false){return rows.length?rows.map(r=>`<tr><td>${escapeHTML(r.id)}</td><td>${escapeHTML(new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',dateStyle:'medium',timeStyle:'short'}).format(r.date))}</td><td><strong>${rupiah(r.amount)}</strong></td>${detail?`<td><button class="secondary small" type="button" data-sale-detail="${escapeHTML(r.saleId)}">Lihat / Cetak</button></td>`:''}</tr>`).join(''):`<tr><td colspan="${detail?4:3}">Belum ada transaksi.</td></tr>`;}
 function renderSalesOverview(today=dayOffset(0)){if(!salesRows)return;$('todayLabel').textContent=new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date(today+'T12:00:00+07:00'));const daily=salesRows.filter(r=>r.day===today);$('metricRevenue').textContent=rupiah(sumSales(daily));$('metricTransactions').textContent=daily.length;$('recentSales').innerHTML=saleRowsHTML(salesRows.slice(0,5));const days=Array.from({length:7},(_,i)=>dayOffset(i-6)).map(day=>({day,total:sumSales(salesRows.filter(r=>r.day===day))}));const max=Math.max(1,...days.map(d=>d.total));$('salesChart').innerHTML=`<div class="chart-bars">${days.map(d=>`<div class="chart-col"><div class="chart-value">${rupiah(d.total)}</div><div class="chart-track"><div class="chart-fill" style="height:${d.total/max*100}%"></div></div><small>${new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',weekday:'short'}).format(new Date(d.day+'T12:00:00+07:00'))}<br>${d.day.slice(8)}/${d.day.slice(5,7)}</small></div>`).join('')}</div>`;}
 function renderHistory(){if(!salesRows)return;const pages=Math.max(1,Math.ceil(salesRows.length/20));historyPage=Math.min(historyPage,pages-1);$('historyRows').innerHTML=saleRowsHTML(salesRows.slice(historyPage*20,historyPage*20+20),true);$('historyPageLabel').textContent=`Halaman ${historyPage+1} / ${pages}`;$('historyPrev').disabled=historyPage===0;$('historyNext').disabled=historyPage>=pages-1;}
-function renderReport(){if(!salesRows)return;const from=$('reportFrom').value,to=$('reportTo').value;if(!from||!to||from>to){setMessage('reportMessage','Pilih rentang tanggal yang benar.');$('reportRevenue').textContent='—';$('reportCount').textContent='—';$('reportRows').innerHTML='<tr><td colspan="3">Rentang tanggal tidak valid.</td></tr>';return;}setMessage('reportMessage','');const rows=salesRows.filter(r=>r.day>=from&&r.day<=to);$('reportRevenue').textContent=rupiah(sumSales(rows));$('reportCount').textContent=rows.length;const groups=new Map();for(const r of rows){const g=groups.get(r.day)||{count:0,total:0};g.count++;g.total+=r.amount;groups.set(r.day,g);}$('reportRows').innerHTML=[...groups.entries()].map(([day,g])=>`<tr><td>${dateLabel(day)}</td><td>${g.count}</td><td><strong>${rupiah(g.total)}</strong></td></tr>`).join('')||'<tr><td colspan="3">Tidak ada transaksi dalam rentang ini.</td></tr>';}
+let reportCategory='all',reportVersion=0;
+function selectReportCategory(category){
+ if(!['all','food','drink'].includes(category))return;
+ reportCategory=category;
+ $('reportCategoryFilter').querySelectorAll('button').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.reportCategory===category)));
+ $('reportRevenueLabel').textContent=category==='food'?'Total penjualan makanan':category==='drink'?'Total penjualan minuman':'Total penjualan';
+}
+function groupCategoryReport(rows,items,productCategories,category){
+ const byId=new Map(rows.map(row=>[String(row.saleId),row]));
+ const groups=new Map(),seen=new Set();let total=0,unknown=0,unknownCount=0,gross=0;
+ for(const item of items){
+  const row=byId.get(String(item.sale_id));if(!row)throw new Error('Rincian transaksi tidak sesuai dengan periode laporan.');
+  const amount=Number(item.subtotal);
+  if(item.subtotal===null||item.subtotal===undefined||item.subtotal===''||!Number.isFinite(amount)||amount<0)throw new Error('Subtotal produk tidak valid.');
+  gross+=amount;
+  const name=String(productCategories.get(String(item.product_id))||'').trim().toLowerCase();
+  const key=name==='makanan'?'food':name==='minuman'?'drink':'other';
+  if(key==='other'){unknown+=amount;unknownCount++;}
+  if(key!==category)continue;
+  const group=groups.get(row.day)||{count:0,total:0};
+  if(!seen.has(row.saleId)){seen.add(row.saleId);group.count++;}
+  group.total+=amount;total+=amount;groups.set(row.day,group);
+ }
+ return {groups,count:seen.size,total,unknown,unknownCount,gross};
+}
+function reportTable(groups){
+ $('reportRows').innerHTML=[...groups.entries()].sort((a,b)=>b[0].localeCompare(a[0])).map(([day,g])=>`<tr><td>${dateLabel(day)}</td><td>${g.count}</td><td><strong>${rupiah(g.total)}</strong></td></tr>`).join('')||'<tr><td colspan="3">Tidak ada transaksi untuk pilihan ini.</td></tr>';
+}
+async function renderReport(){
+ const request=++reportVersion;
+ if(!salesRows||!isAdmin())return;
+ const from=$('reportFrom').value,to=$('reportTo').value,category=reportCategory,user=currentUser,version=salesVersion;
+ const stillCurrent=()=>request===reportVersion&&version===salesVersion&&currentUser===user&&isAdmin();
+ $('reportCategoryNote').hidden=true;$('reportCategoryNote').textContent='';
+ $('reportRevenue').textContent='—';$('reportCount').textContent='—';
+ if(!from||!to||from>to){setMessage('reportMessage','Pilih rentang tanggal yang benar.');$('reportRows').innerHTML='<tr><td colspan="3">Rentang tanggal tidak valid.</td></tr>';return;}
+ setMessage('reportMessage','');
+ const rows=salesRows.filter(r=>r.day>=from&&r.day<=to);
+ if(category==='all'){
+  const groups=new Map();for(const r of rows){const g=groups.get(r.day)||{count:0,total:0};g.count++;g.total+=r.amount;groups.set(r.day,g);}
+  $('reportRevenue').textContent=rupiah(sumSales(rows));$('reportCount').textContent=rows.length;reportTable(groups);return;
+ }
+ $('reportRows').innerHTML='<tr><td colspan="3">Memuat rincian kategori...</td></tr>';
+ try{
+  const details=await fetchCategoryDetails(rows,stillCurrent);
+  if(!details||!stillCurrent())return;
+  const result=groupCategoryReport(rows,details.items,details.productCategories,category);
+  $('reportRevenue').textContent=rupiah(result.total);$('reportCount').textContent=result.count;reportTable(result.groups);
+  let note='Subtotal sebelum diskon. Kategori mengikuti data produk saat rekap. Jumlah transaksi adalah jumlah transaksi unik yang memuat kategori ini; transaksi gabungan dapat masuk ke kedua kategori.';
+  if(result.unknownCount)note+=' Rincian kategori lain/tidak diketahui tidak termasuk dalam pilihan Makanan atau Minuman: '+rupiah(result.unknown)+'.';
+  if(Math.abs(result.gross-sumSales(rows))>0.005)note+=' Total seluruh subtotal berbeda dari total pembayaran (misalnya diskon).';
+  $('reportCategoryNote').textContent=note;$('reportCategoryNote').hidden=false;
+ }catch(error){if(!stillCurrent())return;setMessage('reportMessage','Gagal memuat laporan kategori: '+(error.message||'Periksa koneksi dan izin Supabase.'));$('reportRows').innerHTML='<tr><td colspan="3">Data kategori belum tersedia.</td></tr>';}
+}
 
 let cashierRows=[], cashierVersion=0, cashierEditId=null, cashierEditBusy=false;
 let cashierResetId=null, cashierResetBusy=false;
@@ -920,6 +980,7 @@ $("menuToggle").addEventListener("click",()=>{const opened=$("sidebar").classLis
 document.querySelectorAll("[data-page],[data-go]").forEach(btn=>btn.addEventListener("click",()=>navigate(btn.dataset.page||btn.dataset.go)));
 document.querySelectorAll("[data-refresh-sales]").forEach(btn=>btn.addEventListener("click",loadSales));
 $("reportFrom").addEventListener("change",renderReport);$("reportTo").addEventListener("change",renderReport);
+$('reportCategoryFilter').addEventListener('click',event=>{const btn=event.target.closest('button[data-report-category]');if(!btn||!isAdmin())return;selectReportCategory(btn.dataset.reportCategory);void renderReport();});
 $("historyPrev").addEventListener("click",()=>{historyPage=Math.max(0,historyPage-1);renderHistory();});
 $("historyNext").addEventListener("click",()=>{historyPage++;renderHistory();});
 const RECEIPT_SETTINGS_KEY='ns_food_receipt_settings_v1';
