@@ -95,6 +95,10 @@ body.signed-in #appHeader{display:none}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 
 .cup-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}.cup-metrics>div{border:1px solid var(--line);border-radius:10px;background:#f7faf8;padding:12px;min-width:0}.cup-metrics small{display:block;color:var(--muted);font-size:12px}.cup-metrics strong{display:block;margin-top:7px;color:var(--green);font-size:24px;overflow-wrap:anywhere}.cup-stock-status{margin:8px 0;font-size:13px;font-weight:700}.cup-minimum-form{border-top:1px solid var(--line);margin-top:16px;padding-top:6px}.stock-help{font-size:12px;color:var(--muted);line-height:1.5;margin:0 0 12px}.stock-empty{color:var(--red);font-weight:700}.stock-near{color:#94611d;font-weight:700}.stock-state{display:block;font-size:11px;margin-top:4px}.cup-metrics .stock-empty{color:var(--red)}.cup-metrics .stock-near{color:#94611d}
+
+.receipt-dialog{border:1px solid var(--line);border-radius:16px;width:min(96vw,470px);max-height:90vh;padding:20px;color:var(--text);background:#fff;overflow:auto;box-shadow:0 18px 70px #0004}.receipt-dialog::backdrop{background:#102c2080}.receipt-paper{background:#fff;color:#111;font:12px/1.45 monospace;width:48mm;max-width:100%;margin:0 auto;padding:2mm 0;overflow-wrap:anywhere}.receipt-paper.wide{width:72mm}.receipt-paper h2{font: bold 17px/1.2 Arial,sans-serif;text-align:center;margin:0 0 4px;color:#111}.receipt-center{text-align:center}.receipt-rule{border-top:1px dashed #333;margin:8px 0}.receipt-line{display:flex;justify-content:space-between;gap:5px;align-items:baseline}.receipt-line span:last-child{flex-shrink:0;text-align:right}.receipt-item{margin:5px 0;break-inside:avoid}.receipt-preview-wrap{background:#edf2ee;padding:14px;border-radius:10px;min-height:60px}.receipt-dialog .form-actions button{flex:1}.receipt-dialog h3{margin:0 0 10px}.receipt-print-root{display:none}.receipt-settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.receipt-settings-grid .panel{margin:0}.receipt-settings-grid p{font-size:13px;color:var(--muted)}@media(max-width:850px){.receipt-settings-grid{grid-template-columns:1fr}}
+@page{margin:0}
+@media print{body.receipt-printing{margin:0!important;background:white!important;color:black!important}body.receipt-printing>*:not(#receiptPrintRoot){display:none!important}body.receipt-printing #receiptPrintRoot{display:block!important;margin:0!important;padding:0!important}body.receipt-printing .receipt-paper{max-width:none;margin:0;padding:1mm 0;color:#000;background:white}body.receipt-printing .receipt-rule{border-color:#000}}
 </style>
 </head>
 <body>
@@ -122,7 +126,7 @@ body.signed-in #appHeader{display:none}
    <button class="admin-nav" data-page="overview"><span data-icon="dashboard"></span>Dashboard</button>
    <button data-page="pos"><span data-icon="cart"></span>Kasir / POS</button>
    <button class="admin-nav" data-page="inventory"><span data-icon="box"></span>Persediaan Stok</button>
-   <button class="admin-nav" data-page="history"><span data-icon="history"></span>Riwayat Transaksi</button>
+   <button data-page="history"><span data-icon="history"></span>Riwayat Transaksi</button>
    <button class="admin-nav" data-page="reports"><span data-icon="chart"></span>Laporan Penjualan</button>
    <button class="admin-nav" data-page="cashiers"><span data-icon="user"></span>Manajemen Kasir</button>
    <button class="admin-nav" data-page="settings"><span data-icon="settings"></span>Pengaturan</button>
@@ -166,7 +170,7 @@ body.signed-in #appHeader{display:none}
     <div class="field"><label for="cashReceived">Uang diterima (Rp)</label><input id="cashReceived" type="number" min="0" step="1" placeholder="Masukkan uang pembayaran"></div>
     <div class="summary-line"><span>Kembalian</span><strong id="cashChange">Rp0</strong></div>
     <div class="form-actions"><button id="payButton" type="button" disabled>Proses Pembayaran</button></div>
-    <div id="posMessage" class="message"></div>
+    <div id="posMessage" class="message"></div><button id="lastReceiptButton" type="button" class="secondary" hidden style="width:100%;margin-top:8px">Lihat / Cetak Struk Terakhir</button>
    </div>
   </div>
  </section>
@@ -225,7 +229,7 @@ body.signed-in #appHeader{display:none}
    <div id="productMessage" class="message"></div>
   </div>
  </section>
- <section data-view="history" hidden><article class="panel"><div class="panel-heading"><div><h2>Riwayat Transaksi</h2><p>Transaksi tersimpan di database.</p></div><button class="secondary small" data-refresh-sales>Perbarui</button></div><div id="historyMessage" class="message" role="status"></div><div class="table-wrap"><table class="sales-table"><thead><tr><th>Transaksi</th><th>Waktu (WIB)</th><th>Total</th></tr></thead><tbody id="historyRows"></tbody></table></div><div class="history-nav"><button id="historyPrev" class="secondary small">Sebelumnya</button><span id="historyPageLabel"></span><button id="historyNext" class="secondary small">Berikutnya</button></div></article></section>
+ <section data-view="history" hidden><article class="panel"><div class="panel-heading"><div><h2>Riwayat Transaksi</h2><p>Transaksi tersimpan di database.</p></div><button class="secondary small" data-refresh-sales>Perbarui</button></div><div id="historyMessage" class="message" role="status"></div><div class="table-wrap"><table class="sales-table"><thead><tr><th>Transaksi</th><th>Waktu (WIB)</th><th>Total</th><th>Aksi</th></tr></thead><tbody id="historyRows"></tbody></table></div><div class="history-nav"><button id="historyPrev" class="secondary small">Sebelumnya</button><span id="historyPageLabel"></span><button id="historyNext" class="secondary small">Berikutnya</button></div></article></section>
  <section data-view="reports" hidden><article class="panel"><div class="panel-heading"><div><h2>Laporan Penjualan</h2><p>Rekap berdasarkan tanggal transaksi (WIB).</p></div><button class="secondary small" data-refresh-sales>Perbarui</button></div><div class="two-col"><div class="field"><label for="reportFrom">Dari tanggal</label><input type="date" id="reportFrom"></div><div class="field"><label for="reportTo">Sampai tanggal</label><input type="date" id="reportTo"></div></div><div id="reportMessage" class="message" role="status"></div><div class="report-metrics"><div><small>Total penjualan</small><strong id="reportRevenue">—</strong></div><div><small>Jumlah transaksi</small><strong id="reportCount">—</strong></div></div><div class="table-wrap"><table class="sales-table"><thead><tr><th>Tanggal</th><th>Transaksi</th><th>Penjualan</th></tr></thead><tbody id="reportRows"></tbody></table></div></article></section>
  <section data-view="cashiers" hidden><article class="panel"><div class="panel-heading"><div><h2>Manajemen Kasir</h2><p>Kelola profil dan akun kasir NS FOOD.</p></div><button id="createCashierButton" type="button">+ Buat Akun Kasir</button></div><div id="cashierSuccess" class="message" role="status"></div>    <div id="cashierForm">
      <h3>Buat Akun Kasir</h3>
@@ -249,11 +253,12 @@ body.signed-in #appHeader{display:none}
  <div class="form-actions"><button id="submitCashierReset" type="submit">Simpan Password</button><button id="cancelCashierReset" type="button" class="secondary">Batal</button></div>
  <div id="resetCashierMessage" class="message" role="status"></div>
  </form><p class="empty">Username dan status akses akun belum dapat diubah dari halaman ini.</p></article></section>
- <section data-view="settings" hidden><article class="panel"><h2>Pengaturan</h2><p class="empty">Belum ada pengaturan tambahan yang ditetapkan.</p></article></section>
+ <section data-view="settings" hidden><div class="receipt-settings-grid"><article class="panel"><h2>Pengaturan Struk</h2><p>Pengaturan disimpan pada browser perangkat ini. Gunakan akun Admin pada tablet kasir untuk mengaturnya.</p><form id="receiptSettingsForm"><div class="field"><label for="receiptShop">Nama usaha pada struk</label><input id="receiptShop" maxlength="60" required></div><div class="field"><label for="receiptPaper">Lebar kertas thermal</label><select id="receiptPaper"><option value="58">58 mm (area cetak 48 mm)</option><option value="80">80 mm (area cetak 72 mm)</option></select></div><div class="field"><label for="receiptFooter">Pesan penutup</label><input id="receiptFooter" maxlength="150"></div><div class="field"><label style="display:flex;align-items:center;gap:8px"><input id="receiptAuto" type="checkbox" style="width:auto">Buka pratinjau setelah pembayaran</label></div><button type="submit">Simpan Pengaturan</button><div id="receiptSettingsMessage" class="message" role="status"></div></form></article><article class="panel"><h2>Pratinjau Struk</h2><p>Contoh saja, bukan transaksi baru.</p><div class="receipt-preview-wrap" id="settingsReceiptPreview"></div><div class="form-actions"><button id="testReceipt" type="button" class="secondary">Uji Cetak Struk</button></div><p>Gunakan layanan cetak Android yang sesuai dengan printer. Pilih ukuran kertas yang sama pada dialog cetak.</p></article></div></section>
  <footer>NS FOOD · Sistem Kasir dan Manajemen Persediaan</footer>
  </div></div>
 </main>
 
+<dialog id="receiptDialog" class="receipt-dialog" aria-labelledby="receiptDialogTitle"><h3 id="receiptDialogTitle">Detail Transaksi</h3><div id="receiptMessage" class="message" role="status"></div><div id="receiptPreview" class="receipt-preview-wrap" hidden></div><div class="form-actions"><button id="printReceipt" type="button" disabled>Cetak Struk</button><button id="closeReceipt" type="button" class="secondary">Tutup</button></div></dialog><div id="receiptPrintRoot" class="receipt-print-root" aria-hidden="true"></div>
 <script type="module">
 const SUPABASE_URL = "https://oumbiwxankqqygliiftz.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_KWvdJqM3QeG3WMzNMH_CNQ_FPREmZpC";
@@ -558,10 +563,14 @@ async function processPayment(){
  try{
   const {data,error}=await supabase.rpc("process_sale",{p_items:items,p_discount:0,p_payment_amount:payment});
   if(error)throw error;
-  cart=[];$("cashReceived").value="";localStorage.removeItem(DRAFT_KEY);renderCart();
+  cart=[];$("cashReceived").value="";try{localStorage.removeItem(DRAFT_KEY);}catch{}renderCart();
+  lastReceiptId=typeof data==='string'?data:null;
+  $('lastReceiptButton').hidden=!lastReceiptId;
+  setMessage("posMessage","Transaksi berhasil disimpan.",true);
+  if(lastReceiptId&&readReceiptSettings().auto)void openSaleReceipt(lastReceiptId,true);
   try{await loadDataBarang();}catch(refreshError){setMessage("posMessage","Transaksi sudah tersimpan, tetapi stok gagal dimuat ulang. Muat ulang halaman sebelum transaksi berikutnya.");return;}
   if(isAdmin()) void loadSales();
-  setMessage("posMessage",`Transaksi berhasil. Total ${rupiah(total)} · Kembalian ${rupiah(payment-total)}.`,true);
+  if(!lastReceiptId)setMessage("posMessage","Transaksi sudah tersimpan. Buka Riwayat Transaksi untuk melihat struk.",true);
  }catch(error){setMessage("posMessage","Transaksi gagal: "+(error.message||"Stok mungkin berubah. Periksa stok lalu coba kembali."));}
  finally{paymentBusy=false;$("cashReceived").disabled=false;updateChange();}
 }
@@ -585,6 +594,7 @@ async function login(event){
 }
 function logout(){
  resetCashierViews();
+ resetReceiptViews();
  currentUser=null;cart=[];salesVersion++;salesRows=null;clearSalesViews();localStorage.removeItem(DRAFT_KEY);$("loginForm").reset();$("cashReceived").value="";renderCart();showLogin();setMessage("loginMessage","");
 }
 let paymentBusy=false, salesRows=null, salesVersion=0, historyPage=0;
@@ -595,11 +605,12 @@ function closeMenu(){$('sidebar').classList.remove('open');$('menuToggle').setAt
 function navigate(page,refresh=true){
  if(!currentUser)return;
  if(page!=='cashiers'&&!cashierResetBusy)closeCashierReset();
- if(!Object.hasOwn(titles,page)||(!isAdmin()&&page!=='pos'))page='pos';
+ if(!Object.hasOwn(titles,page)||(!isAdmin()&&!['pos','history'].includes(page)))page='pos';
  document.querySelectorAll('[data-view]').forEach(el=>el.hidden=el.dataset.view!==page);
  document.querySelectorAll('[data-page]').forEach(el=>{const active=el.dataset.page===page;el.classList.toggle('active',active);if(active)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
  $('pageTitle').textContent=titles[page];closeMenu();window.scrollTo(0,0);
- if(refresh&&isAdmin()&&['overview','history','reports'].includes(page))void loadSales();
+ if(refresh&&(page==='history'||(isAdmin()&&['overview','reports'].includes(page))))void loadSales();
+ if(page==='settings'&&isAdmin())fillReceiptSettings();
  if(page==='cashiers'&&isAdmin())void loadCashiers();
 }
 const dayFormat=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'});
@@ -619,7 +630,7 @@ function renderStockOverview(){
 function clearSalesViews(message='Data penjualan belum tersedia.'){
  $('metricRevenue').textContent='—';$('metricTransactions').textContent='—';$('reportRevenue').textContent='—';$('reportCount').textContent='—';
  $('salesChart').textContent=message;
- ['recentSales','historyRows','reportRows'].forEach(id=>$(id).innerHTML=`<tr><td colspan="3">${escapeHTML(message)}</td></tr>`);
+ ['recentSales','historyRows','reportRows'].forEach(id=>$(id).innerHTML=`<tr><td colspan="${id==='historyRows'?4:3}">${escapeHTML(message)}</td></tr>`);
  $('historyPageLabel').textContent='';$('historyPrev').disabled=true;$('historyNext').disabled=true;
 }
 function saleField(row,keys){return keys.find(k=>Object.hasOwn(row,k)&&row[k]!==null&&row[k]!==undefined&&row[k]!=='');}
@@ -629,10 +640,11 @@ function normalizeSale(row){
  if(!dateKey||!amountKey)throw new Error('Kolom tanggal atau total pada tabel sales belum dikenali. Perlu verifikasi struktur database.');
  const raw=String(row[dateKey]);const date=new Date(/^\d{4}-\d{2}-\d{2}$/.test(raw)?raw+'T00:00:00+07:00':raw);
  const amount=Number(row[amountKey]);if(!Number.isFinite(date.getTime())||!Number.isFinite(amount)||amount<0)throw new Error('Format tanggal atau nilai transaksi tidak dikenali.');
- return {id:String(row.invoice_number??row.sale_number??row.transaction_number??row.id??'—'),date,day:dayKey(date),amount};
+ return {saleId:String(row.id),id:String(row.invoice_number??row.sale_number??row.transaction_number??row.id??'—'),date,day:dayKey(date),amount};
 }
 async function loadSales(){
- if(!isAdmin())return;
+ if(!currentUser||(!isAdmin()&&!isCashier()))return;
+ const user=currentUser;
  const version=++salesVersion;salesRows=null;clearSalesViews('Memuat penjualan...');
  ['salesNotice','historyMessage','reportMessage'].forEach(id=>setMessage(id,''));
  try{
@@ -640,16 +652,16 @@ async function loadSales(){
   for(let offset=0;;offset+=chunk){
    if(offset>=50000)throw new Error('Data terlalu banyak untuk rekap ini. Diperlukan laporan server.');
    const {data,error}=await supabase.from('sales').select('*').order('id',{ascending:true}).range(offset,offset+chunk-1);
-   if(version!==salesVersion||!isAdmin())return;
+   if(version!==salesVersion||currentUser!==user)return;
    if(error)throw error;const batch=data||[];rows.push(...batch);if(batch.length<chunk)break;
   }
-  salesRows=rows.map(normalizeSale).sort((a,b)=>b.date-a.date);historyPage=0;renderSalesOverview();renderHistory();renderReport();
- }catch(error){if(version!==salesVersion||!isAdmin())return;salesRows=null;clearSalesViews();const msg='Data penjualan belum dapat diverifikasi: '+(error.message||'Periksa tabel dan izin Supabase.');['salesNotice','historyMessage','reportMessage'].forEach(id=>setMessage(id,msg));}
+  salesRows=rows.map(normalizeSale).sort((a,b)=>b.date-a.date);historyPage=0;if(isAdmin()){renderSalesOverview();renderReport();}renderHistory();
+ }catch(error){if(version!==salesVersion||currentUser!==user)return;salesRows=null;clearSalesViews();const msg='Data penjualan belum dapat diverifikasi: '+(error.message||'Periksa tabel dan izin Supabase.');['salesNotice','historyMessage','reportMessage'].forEach(id=>setMessage(id,msg));}
 }
 function sumSales(rows){return rows.reduce((sum,r)=>sum+r.amount,0);}
-function saleRowsHTML(rows){return rows.length?rows.map(r=>`<tr><td>${escapeHTML(r.id)}</td><td>${escapeHTML(new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',dateStyle:'medium',timeStyle:'short'}).format(r.date))}</td><td><strong>${rupiah(r.amount)}</strong></td></tr>`).join(''):'<tr><td colspan="3">Belum ada transaksi.</td></tr>';}
+function saleRowsHTML(rows,detail=false){return rows.length?rows.map(r=>`<tr><td>${escapeHTML(r.id)}</td><td>${escapeHTML(new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',dateStyle:'medium',timeStyle:'short'}).format(r.date))}</td><td><strong>${rupiah(r.amount)}</strong></td>${detail?`<td><button class="secondary small" type="button" data-sale-detail="${escapeHTML(r.saleId)}">Lihat / Cetak</button></td>`:''}</tr>`).join(''):`<tr><td colspan="${detail?4:3}">Belum ada transaksi.</td></tr>`;}
 function renderSalesOverview(){if(!salesRows)return;const today=dayOffset(0), daily=salesRows.filter(r=>r.day===today);$('metricRevenue').textContent=rupiah(sumSales(daily));$('metricTransactions').textContent=daily.length;$('recentSales').innerHTML=saleRowsHTML(salesRows.slice(0,5));const days=Array.from({length:7},(_,i)=>dayOffset(i-6)).map(day=>({day,total:sumSales(salesRows.filter(r=>r.day===day))}));const max=Math.max(1,...days.map(d=>d.total));$('salesChart').innerHTML=`<div class="chart-bars">${days.map(d=>`<div class="chart-col"><div class="chart-value">${rupiah(d.total)}</div><div class="chart-track"><div class="chart-fill" style="height:${d.total/max*100}%"></div></div><small>${new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',weekday:'short'}).format(new Date(d.day+'T12:00:00+07:00'))}<br>${d.day.slice(8)}/${d.day.slice(5,7)}</small></div>`).join('')}</div>`;}
-function renderHistory(){if(!salesRows)return;const pages=Math.max(1,Math.ceil(salesRows.length/20));historyPage=Math.min(historyPage,pages-1);$('historyRows').innerHTML=saleRowsHTML(salesRows.slice(historyPage*20,historyPage*20+20));$('historyPageLabel').textContent=`Halaman ${historyPage+1} / ${pages}`;$('historyPrev').disabled=historyPage===0;$('historyNext').disabled=historyPage>=pages-1;}
+function renderHistory(){if(!salesRows)return;const pages=Math.max(1,Math.ceil(salesRows.length/20));historyPage=Math.min(historyPage,pages-1);$('historyRows').innerHTML=saleRowsHTML(salesRows.slice(historyPage*20,historyPage*20+20),true);$('historyPageLabel').textContent=`Halaman ${historyPage+1} / ${pages}`;$('historyPrev').disabled=historyPage===0;$('historyNext').disabled=historyPage>=pages-1;}
 function renderReport(){if(!salesRows)return;const from=$('reportFrom').value,to=$('reportTo').value;if(!from||!to||from>to){setMessage('reportMessage','Pilih rentang tanggal yang benar.');$('reportRevenue').textContent='—';$('reportCount').textContent='—';$('reportRows').innerHTML='<tr><td colspan="3">Rentang tanggal tidak valid.</td></tr>';return;}setMessage('reportMessage','');const rows=salesRows.filter(r=>r.day>=from&&r.day<=to);$('reportRevenue').textContent=rupiah(sumSales(rows));$('reportCount').textContent=rows.length;const groups=new Map();for(const r of rows){const g=groups.get(r.day)||{count:0,total:0};g.count++;g.total+=r.amount;groups.set(r.day,g);}$('reportRows').innerHTML=[...groups.entries()].map(([day,g])=>`<tr><td>${dateLabel(day)}</td><td>${g.count}</td><td><strong>${rupiah(g.total)}</strong></td></tr>`).join('')||'<tr><td colspan="3">Tidak ada transaksi dalam rentang ini.</td></tr>';}
 
 let cashierRows=[], cashierVersion=0, cashierEditId=null, cashierEditBusy=false;
@@ -788,6 +800,49 @@ document.querySelectorAll("[data-refresh-sales]").forEach(btn=>btn.addEventListe
 $("reportFrom").addEventListener("change",renderReport);$("reportTo").addEventListener("change",renderReport);
 $("historyPrev").addEventListener("click",()=>{historyPage=Math.max(0,historyPage-1);renderHistory();});
 $("historyNext").addEventListener("click",()=>{historyPage++;renderHistory();});
+const RECEIPT_SETTINGS_KEY='ns_food_receipt_settings_v1';
+let lastReceiptId=null, receiptVersion=0, activeReceipt=null;
+function readReceiptSettings(){
+ let v={};try{v=JSON.parse(localStorage.getItem(RECEIPT_SETTINGS_KEY)||'{}')||{};}catch{}
+ return {shop:typeof v.shop==='string'&&v.shop.trim()?v.shop.slice(0,60):'NS FOOD',paper:v.paper==='80'?'80':'58',footer:typeof v.footer==='string'?v.footer.slice(0,150):'Terima kasih. Selamat menikmati!',auto:v.auto!==false};
+}
+function draftReceiptSettings(){return {shop:$('receiptShop').value.trim()||'NS FOOD',paper:$('receiptPaper').value==='80'?'80':'58',footer:$('receiptFooter').value.trim(),auto:$('receiptAuto').checked};}
+function sampleReceipt(){return {sample:true,sale:{invoice_number:'CONTOH - BUKAN TRANSAKSI',created_at:new Date().toISOString(),total_amount:46000,discount:0,payment_amount:50000,change_amount:4000},cashier:'Contoh Kasir',items:[{product_name:'Es Teler',quantity:3,unit_price:10000,subtotal:30000},{product_name:'Es Jeruk',quantity:2,unit_price:8000,subtotal:16000}]};}
+function receiptHTML(r,settings){
+ const sale=r.sale, line=(name,value)=>`<div class="receipt-line"><span>${escapeHTML(name)}</span><span>${escapeHTML(value)}</span></div>`;
+ const date=sale.created_at?new Date(sale.created_at):null;
+ const dateText=date&&Number.isFinite(date.getTime())?new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',dateStyle:'medium',timeStyle:'short'}).format(date)+' WIB':'Tanggal tidak tersedia';
+ return `<div class="receipt-paper ${settings.paper==='80'?'wide':''}"><h2>${escapeHTML(settings.shop)}</h2><div class="receipt-center">${r.sample?'UJI CETAK — BUKAN TRANSAKSI':'STRUK PEMBAYARAN'}</div><div class="receipt-rule"></div><div>No: ${escapeHTML(sale.invoice_number)}</div><div>${escapeHTML(dateText)}</div><div>Kasir: ${escapeHTML(r.cashier)}</div><div class="receipt-rule"></div>${r.items.map(i=>`<div class="receipt-item"><strong>${escapeHTML(i.product_name)}</strong>${line(`${i.quantity} × ${rupiah(i.unit_price)}`,rupiah(i.subtotal))}</div>`).join('')}<div class="receipt-rule"></div>${Number(sale.discount)>0?line('Diskon',rupiah(sale.discount)):''}<strong>${line('TOTAL',rupiah(sale.total_amount))}</strong>${line('Tunai',rupiah(sale.payment_amount))}${line('Kembalian',rupiah(sale.change_amount))}<div class="receipt-rule"></div><div class="receipt-center">${escapeHTML(settings.footer)}</div></div>`;
+}
+function fillReceiptSettings(){const v=readReceiptSettings();$('receiptShop').value=v.shop;$('receiptPaper').value=v.paper;$('receiptFooter').value=v.footer;$('receiptAuto').checked=v.auto;renderSettingsPreview();setMessage('receiptSettingsMessage','');}
+function renderSettingsPreview(){if(isAdmin())$('settingsReceiptPreview').innerHTML=receiptHTML(sampleReceipt(),draftReceiptSettings());}
+function closeReceiptDialog(){receiptVersion++;activeReceipt=null;$('receiptPreview').innerHTML='';$('receiptPreview').hidden=true;$('printReceipt').disabled=true;$('receiptPrintRoot').innerHTML='';document.body.classList.remove('receipt-printing');if($('receiptDialog').open)$('receiptDialog').close();}
+function resetReceiptViews(){closeReceiptDialog();lastReceiptId=null;$('lastReceiptButton').hidden=true;}
+function showReceipt(r,settings){activeReceipt={r,settings};$('receiptPreview').innerHTML=receiptHTML(r,settings);$('receiptPreview').hidden=false;$('printReceipt').disabled=false;setMessage('receiptMessage','');}
+async function openSaleReceipt(id,afterPayment=false){
+ if(!currentUser||(!isAdmin()&&!isCashier()))return;
+ const user=currentUser, version=++receiptVersion;activeReceipt=null;
+ $('receiptDialogTitle').textContent=afterPayment?'Pembayaran Berhasil':'Detail Transaksi';$('receiptPreview').hidden=true;$('receiptPreview').innerHTML='';$('printReceipt').disabled=true;setMessage('receiptMessage','Memuat struk transaksi...');if(!$('receiptDialog').open)$('receiptDialog').showModal();
+ try{
+  const {data:sale,error}=await supabase.from('sales').select('id,invoice_number,cashier_id,total_amount,discount,payment_amount,change_amount,created_at').eq('id',id).maybeSingle();
+  if(error)throw error;if(!sale)throw new Error('Transaksi tidak ditemukan atau akses ditolak.');
+  const items=[];for(let offset=0;;offset+=500){const {data,error}=await supabase.from('sale_items').select('id,product_name,quantity,unit_price,subtotal').eq('sale_id',id).order('id').range(offset,offset+499);if(error)throw error;items.push(...(data||[]));if((data||[]).length<500)break;}
+  if(!items.length)throw new Error('Rincian produk tidak tersedia.');
+  let cashier='Tidak tersedia';if(sale.cashier_id){const {data:profile}=await supabase.from('profiles').select('full_name,username').eq('id',sale.cashier_id).maybeSingle();cashier=profile?.full_name||profile?.username||'Tidak tersedia';}
+  if(version!==receiptVersion||currentUser!==user)return;
+  showReceipt({sale,items,cashier},readReceiptSettings());
+ }catch(error){if(version!==receiptVersion||currentUser!==user)return;setMessage('receiptMessage',(afterPayment?'Pembayaran sudah tersimpan. ':'')+'Gagal memuat struk: '+(error.message||'Periksa koneksi.' )+' Coba lagi dari Riwayat Transaksi.');}
+}
+$('receiptSettingsForm').addEventListener('submit',e=>{e.preventDefault();if(!isAdmin())return;try{localStorage.setItem(RECEIPT_SETTINGS_KEY,JSON.stringify(draftReceiptSettings()));setMessage('receiptSettingsMessage','Pengaturan struk disimpan pada perangkat ini.',true);renderSettingsPreview();}catch{setMessage('receiptSettingsMessage','Gagal menyimpan pengaturan pada browser.');}});
+$('receiptSettingsForm').addEventListener('input',renderSettingsPreview);
+$('testReceipt').addEventListener('click',()=>{if(!isAdmin())return;receiptVersion++;$('receiptDialogTitle').textContent='Uji Cetak Struk';if(!$('receiptDialog').open)$('receiptDialog').showModal();showReceipt(sampleReceipt(),draftReceiptSettings());});
+$('lastReceiptButton').addEventListener('click',()=>{if(lastReceiptId)void openSaleReceipt(lastReceiptId);});
+$('historyRows').addEventListener('click',e=>{const b=e.target.closest('[data-sale-detail]');if(b)void openSaleReceipt(b.dataset.saleDetail);});
+$('closeReceipt').addEventListener('click',closeReceiptDialog);
+$('receiptDialog').addEventListener('cancel',e=>{e.preventDefault();closeReceiptDialog();});
+$('printReceipt').addEventListener('click',()=>{if(!activeReceipt||!currentUser)return;$('receiptPrintRoot').innerHTML=receiptHTML(activeReceipt.r,activeReceipt.settings);document.body.classList.add('receipt-printing');try{window.print();}catch{document.body.classList.remove('receipt-printing');setMessage('receiptMessage','Dialog cetak gagal dibuka. Periksa layanan cetak perangkat.');}});
+window.addEventListener('afterprint',()=>{document.body.classList.remove('receipt-printing');$('receiptPrintRoot').innerHTML='';});
+
 renderCart();
 </script>
 </body>
