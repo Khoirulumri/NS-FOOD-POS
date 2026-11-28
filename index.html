@@ -231,7 +231,15 @@ body.signed-in #appHeader{display:none}
  <div id="cashierListMessage" class="message" role="status"></div>
  <div class="table-wrap"><table class="sales-table"><thead><tr><th>Nama Lengkap</th><th>Username</th><th>Terdaftar (WIB)</th><th>Aksi</th></tr></thead><tbody id="cashierRows"><tr><td colspan="4">Belum dimuat.</td></tr></tbody></table></div>
  <form id="editCashierForm" hidden style="margin-top:18px;padding:16px;border:1px solid var(--line);border-radius:10px;background:#f8fbf9"><h3>Edit Nama Kasir</h3><p class="empty" id="editCashierUsername"></p><div class="field"><label for="editCashierName">Nama Lengkap</label><input id="editCashierName" required maxlength="100"></div><div class="form-actions"><button id="saveCashierName" type="submit">Simpan Nama</button><button id="cancelCashierEdit" type="button" class="secondary">Batal</button></div><div id="editCashierMessage" class="message" role="status"></div></form>
- <p class="empty">Username, password, dan status akses akun belum dapat diubah dari halaman ini.</p></article></section>
+ <form id="resetCashierForm" hidden style="margin-top:18px;padding:16px;border:1px solid var(--line);border-radius:10px;background:#f8fbf9">
+ <h3>Reset Password Kasir</h3><p id="resetCashierTarget" class="empty"></p>
+ <div class="notice">Password lama akan diganti. Pastikan password baru disampaikan kepada kasir secara aman.</div>
+ <div class="field"><label for="resetCashierPassword">Password Baru (minimal 8 karakter)</label><input id="resetCashierPassword" type="password" minlength="8" required autocomplete="new-password"></div>
+ <div class="field"><label for="resetCashierConfirm">Konfirmasi Password Baru</label><input id="resetCashierConfirm" type="password" minlength="8" required autocomplete="new-password"></div>
+ <div class="field"><label style="display:flex;align-items:center;gap:8px;font-weight:400"><input id="showResetPassword" type="checkbox" style="width:auto">Tampilkan password</label></div>
+ <div class="form-actions"><button id="submitCashierReset" type="submit">Simpan Password</button><button id="cancelCashierReset" type="button" class="secondary">Batal</button></div>
+ <div id="resetCashierMessage" class="message" role="status"></div>
+ </form><p class="empty">Username dan status akses akun belum dapat diubah dari halaman ini.</p></article></section>
  <section data-view="settings" hidden><article class="panel"><h2>Pengaturan</h2><p class="empty">Belum ada pengaturan tambahan yang ditetapkan.</p></article></section>
  <footer>NS FOOD · Sistem Kasir dan Manajemen Persediaan</footer>
  </div></div>
@@ -543,6 +551,7 @@ document.querySelectorAll('[data-icon]').forEach(el=>{el.innerHTML=`<svg viewBox
 function closeMenu(){$('sidebar').classList.remove('open');$('menuToggle').setAttribute('aria-expanded','false');}
 function navigate(page,refresh=true){
  if(!currentUser)return;
+ if(page!=='cashiers'&&!cashierResetBusy)closeCashierReset();
  if(!Object.hasOwn(titles,page)||(!isAdmin()&&page!=='pos'))page='pos';
  document.querySelectorAll('[data-view]').forEach(el=>el.hidden=el.dataset.view!==page);
  document.querySelectorAll('[data-page]').forEach(el=>{const active=el.dataset.page===page;el.classList.toggle('active',active);if(active)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
@@ -600,11 +609,59 @@ function renderHistory(){if(!salesRows)return;const pages=Math.max(1,Math.ceil(s
 function renderReport(){if(!salesRows)return;const from=$('reportFrom').value,to=$('reportTo').value;if(!from||!to||from>to){setMessage('reportMessage','Pilih rentang tanggal yang benar.');$('reportRevenue').textContent='—';$('reportCount').textContent='—';$('reportRows').innerHTML='<tr><td colspan="3">Rentang tanggal tidak valid.</td></tr>';return;}setMessage('reportMessage','');const rows=salesRows.filter(r=>r.day>=from&&r.day<=to);$('reportRevenue').textContent=rupiah(sumSales(rows));$('reportCount').textContent=rows.length;const groups=new Map();for(const r of rows){const g=groups.get(r.day)||{count:0,total:0};g.count++;g.total+=r.amount;groups.set(r.day,g);}$('reportRows').innerHTML=[...groups.entries()].map(([day,g])=>`<tr><td>${dateLabel(day)}</td><td>${g.count}</td><td><strong>${rupiah(g.total)}</strong></td></tr>`).join('')||'<tr><td colspan="3">Tidak ada transaksi dalam rentang ini.</td></tr>';}
 
 let cashierRows=[], cashierVersion=0, cashierEditId=null, cashierEditBusy=false;
+let cashierResetId=null, cashierResetBusy=false;
+function closeCashierReset(){
+ cashierResetId=null; $('resetCashierForm').hidden=true; $('resetCashierForm').reset(); $('resetCashierTarget').textContent='';
+ $('resetCashierPassword').type='password'; $('resetCashierConfirm').type='password'; setMessage('resetCashierMessage','');
+}
+function openCashierReset(p){
+ if(!isAdmin()||cashierResetBusy||cashierEditBusy||p.role!=='cashier')return;
+ closeCashierEdit(); closeCashierReset(); $('cashierForm').style.display='none'; $('cashierEntryForm').reset(); setMessage('cashierSuccess','');
+ cashierResetId=p.id; $('resetCashierTarget').textContent=p.full_name+' · Username: '+(p.username||'—');
+ $('resetCashierForm').hidden=false; $('resetCashierPassword').focus();
+}
+$('showResetPassword').addEventListener('change',()=>{
+ const type=$('showResetPassword').checked?'text':'password'; $('resetCashierPassword').type=type; $('resetCashierConfirm').type=type;
+});
+$('cancelCashierReset').addEventListener('click',()=>{if(!cashierResetBusy)closeCashierReset();});
+$('resetCashierForm').addEventListener('submit',async event=>{
+ event.preventDefault(); if(!isAdmin()||!cashierResetId||cashierResetBusy||cashierEditBusy)return;
+ const id=cashierResetId, actor=currentUser, password=$('resetCashierPassword').value;
+ if(password.length<8){setMessage('resetCashierMessage','Password minimal 8 karakter.');return;}
+ if(password!==$('resetCashierConfirm').value){setMessage('resetCashierMessage','Konfirmasi password tidak sama.');return;}
+ if(!confirm('Ganti password akun kasir ini? Password lama tidak dapat digunakan untuk login baru.'))return;
+ cashierResetBusy=true;
+ const controls=['submitCashierReset','cancelCashierReset','resetCashierPassword','resetCashierConfirm','showResetPassword'];
+ controls.forEach(id=>$(id).disabled=true); setMessage('resetCashierMessage','Memverifikasi sesi Admin...');
+ try{
+  const {data:sessionData,error:sessionError}=await supabase.auth.getSession();
+  const token=sessionData?.session?.access_token;
+  if(sessionError||!token)throw new Error('Sesi Supabase tidak tersedia. Silakan login ulang sebagai Admin.');
+  const {data:userData,error:userError}=await supabase.auth.getUser(token);
+  const authId=userData?.user?.id;
+  if(userError||!authId)throw new Error('Sesi Supabase tidak valid. Silakan login ulang sebagai Admin.');
+  if(actor.id&&String(actor.id)!==String(authId))throw new Error('Sesi Supabase berbeda dari akun yang tampil. Jangan lanjutkan reset; laporkan masalah sesi login.');
+  const {data:profile,error:profileError}=await supabase.from('profiles').select('id,username,role').eq('id',authId).maybeSingle();
+  if(profileError||!profile||profile.role!=='admin'||(!actor.id&&(!actor.username||profile.username!==actor.username)))throw new Error('Identitas Admin tidak dapat diverifikasi. Silakan login ulang.');
+  if(currentUser!==actor||!isAdmin()||cashierResetId!==id)return;
+  setMessage('resetCashierMessage','Memperbarui password...');
+  const {data,error}=await supabase.functions.invoke('reset-cashier-password',{headers:{Authorization:'Bearer '+token},body:{cashier_id:id,password}});
+  if(error){
+   let message='Permintaan gagal atau tidak terkonfirmasi. Periksa Edge Function dan sesi login sebelum mencoba kembali.';
+   try{const result=await error.context?.json();if(typeof result?.message==='string')message=result.message;}catch{}
+   throw new Error(message);
+  }
+  if(data?.message!=='Password Kasir berhasil diperbarui')throw new Error('Hasil reset tidak terkonfirmasi. Periksa status sebelum mencoba kembali.');
+  if(currentUser!==actor||!isAdmin())return;
+  closeCashierReset(); setMessage('cashierSuccess','Password kasir berhasil diperbarui.',true);
+ }catch(error){if(currentUser===actor&&isAdmin())setMessage('resetCashierMessage','Gagal mereset password: '+(error.message||'Periksa koneksi.'));}
+ finally{cashierResetBusy=false;controls.forEach(id=>$(id).disabled=false);$('resetCashierPassword').value='';$('resetCashierConfirm').value='';$('showResetPassword').checked=false;$('resetCashierPassword').type='password';$('resetCashierConfirm').type='password';}
+});
 function closeCashierEdit(){
  cashierEditId=null; $('editCashierForm').hidden=true; $('editCashierForm').reset(); $('editCashierUsername').textContent=''; setMessage('editCashierMessage','');
 }
 function resetCashierViews(){
- cashierVersion++; cashierRows=[]; $('refreshCashiers').disabled=false; closeCashierEdit(); $('cashierRows').innerHTML='<tr><td colspan="4">Belum dimuat.</td></tr>'; $('cashierForm').style.display='none'; $('cashierEntryForm').reset(); ['cashierSuccess','cashierMessage','cashierListMessage'].forEach(id=>setMessage(id,''));
+ cashierVersion++; cashierRows=[]; $('refreshCashiers').disabled=false; closeCashierEdit(); closeCashierReset(); $('cashierRows').innerHTML='<tr><td colspan="4">Belum dimuat.</td></tr>'; $('cashierForm').style.display='none'; $('cashierEntryForm').reset(); ['cashierSuccess','cashierMessage','cashierListMessage'].forEach(id=>setMessage(id,''));
 }
 async function loadCashiers(){
  if(!isAdmin())return;
@@ -615,15 +672,17 @@ async function loadCashiers(){
   if(error)throw error;
   cashierRows=data||[];
   const dateFmt=new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',dateStyle:'medium'});
-  $('cashierRows').innerHTML=cashierRows.map(p=>{const d=p.created_at?new Date(p.created_at):null;return `<tr><td><strong>${escapeHTML(p.full_name)}</strong></td><td>${escapeHTML(p.username||'—')}</td><td>${d&&Number.isFinite(d.getTime())?escapeHTML(dateFmt.format(d)):'—'}</td><td><button type="button" class="small secondary" data-edit-cashier="${escapeHTML(p.id)}">Edit Nama</button></td></tr>`;}).join('')||'<tr><td colspan="4">Belum ada akun kasir yang dapat ditampilkan.</td></tr>';
+  $('cashierRows').innerHTML=cashierRows.map(p=>{const d=p.created_at?new Date(p.created_at):null;return `<tr><td><strong>${escapeHTML(p.full_name)}</strong></td><td>${escapeHTML(p.username||'—')}</td><td>${d&&Number.isFinite(d.getTime())?escapeHTML(dateFmt.format(d)):'—'}</td><td><button type="button" class="small secondary" data-edit-cashier="${escapeHTML(p.id)}">Edit Nama</button>${p.role==='cashier'?` <button type="button" class="small secondary" data-reset-cashier="${escapeHTML(p.id)}">Reset Password</button>`:''}</td></tr>`;}).join('')||'<tr><td colspan="4">Belum ada akun kasir yang dapat ditampilkan.</td></tr>';
  }catch(error){if(version!==cashierVersion||!isAdmin())return; $('cashierRows').innerHTML='<tr><td colspan="4">Daftar kasir gagal dimuat.</td></tr>';setMessage('cashierListMessage','Gagal memuat profil: '+(error.message||'Periksa izin Supabase.'));}
  finally{if(version===cashierVersion)$('refreshCashiers').disabled=false;}
 }
 $('refreshCashiers').addEventListener('click',loadCashiers);
 $('cashierRows').addEventListener('click',event=>{
- const btn=event.target.closest('[data-edit-cashier]');if(!btn||!isAdmin()||cashierEditBusy)return;
+ const reset=event.target.closest('[data-reset-cashier]');
+ if(reset){const p=cashierRows.find(p=>String(p.id)===reset.dataset.resetCashier);if(p)openCashierReset(p);return;}
+ const btn=event.target.closest('[data-edit-cashier]');if(!btn||!isAdmin()||cashierEditBusy||cashierResetBusy)return;
  const p=cashierRows.find(p=>String(p.id)===btn.dataset.editCashier);if(!p)return;
- closeCashierEdit(); cashierEditId=p.id; $('cashierForm').style.display='none'; $('editCashierUsername').textContent='Username: '+(p.username||'—'); $('editCashierName').value=p.full_name; $('editCashierForm').hidden=false; $('editCashierName').focus();
+ closeCashierReset(); closeCashierEdit(); cashierEditId=p.id; $('cashierForm').style.display='none'; $('editCashierUsername').textContent='Username: '+(p.username||'—'); $('editCashierName').value=p.full_name; $('editCashierForm').hidden=false; $('editCashierName').focus();
 });
 $('cancelCashierEdit').addEventListener('click',()=>{if(!cashierEditBusy)closeCashierEdit();});
 $('editCashierForm').addEventListener('submit',async event=>{
@@ -667,7 +726,7 @@ $("productImage").addEventListener("change",()=>{
  else if(editingImageUrl){$("imagePreview").src=editingImageUrl;$("imagePreview").style.display="block";}
  else $("imagePreview").style.display="none";
 });
-$("createCashierButton").addEventListener("click",()=>{if(!isAdmin()||cashierEditBusy)return;closeCashierEdit();$("cashierEntryForm").reset();$("cashierForm").style.display="block";$("productForm").style.display="none";setMessage("cashierMessage","");$("cashierForm").scrollIntoView({behavior:"smooth",block:"start"});});
+$("createCashierButton").addEventListener("click",()=>{if(!isAdmin()||cashierEditBusy||cashierResetBusy)return;closeCashierReset();closeCashierEdit();$("cashierEntryForm").reset();$("cashierForm").style.display="block";$("productForm").style.display="none";setMessage("cashierMessage","");$("cashierForm").scrollIntoView({behavior:"smooth",block:"start"});});
 $("cancelCashierButton").addEventListener("click",()=>{$("cashierForm").style.display="none";$("cashierEntryForm").reset();setMessage("cashierMessage","");});
 $("cashierEntryForm").addEventListener("submit",createCashier);
 $("addCupButton").addEventListener("click",addCupStock);
