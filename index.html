@@ -99,6 +99,8 @@ body.signed-in #appHeader{display:none}
 .receipt-dialog{border:1px solid var(--line);border-radius:16px;width:min(96vw,470px);max-height:90vh;padding:20px;color:var(--text);background:#fff;overflow:auto;box-shadow:0 18px 70px #0004}.receipt-dialog::backdrop{background:#102c2080}.receipt-paper{background:#fff;color:#111;font:12px/1.45 monospace;width:48mm;max-width:100%;margin:0 auto;padding:2mm 0;overflow-wrap:anywhere}.receipt-paper.wide{width:72mm}.receipt-paper h2{font: bold 17px/1.2 Arial,sans-serif;text-align:center;margin:0 0 4px;color:#111}.receipt-center{text-align:center}.receipt-rule{border-top:1px dashed #333;margin:8px 0}.receipt-line{display:flex;justify-content:space-between;gap:5px;align-items:baseline}.receipt-line span:last-child{flex-shrink:0;text-align:right}.receipt-item{margin:5px 0;break-inside:avoid}.receipt-preview-wrap{background:#edf2ee;padding:14px;border-radius:10px;min-height:60px}.receipt-dialog .form-actions button{flex:1}.receipt-dialog h3{margin:0 0 10px}.receipt-print-root{display:none}.receipt-settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.receipt-settings-grid .panel{margin:0}.receipt-settings-grid p{font-size:13px;color:var(--muted)}@media(max-width:850px){.receipt-settings-grid{grid-template-columns:1fr}}
 @page{margin:0}
 @media print{body.receipt-printing{margin:0!important;background:white!important;color:black!important}body.receipt-printing>*:not(#receiptPrintRoot){display:none!important}body.receipt-printing #receiptPrintRoot{display:block!important;margin:0!important;padding:0!important}body.receipt-printing .receipt-paper{max-width:none;margin:0;padding:1mm 0;color:#000;background:white}body.receipt-printing .receipt-rule{border-color:#000}}
+
+.category-sales-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.category-sales-card{background:#f5f9f6;border:1px solid var(--line);padding:15px;border-radius:10px;min-width:0}.category-sales-card small{display:block;color:var(--muted);font-size:12px}.category-sales-card strong{display:block;font-size:clamp(20px,2.3vw,28px);color:var(--green);margin:6px 0;overflow-wrap:anywhere}.category-sales-card .metric-icon{margin-bottom:8px}.category-sales-bar{display:flex;height:12px;border-radius:20px;overflow:hidden;background:#edf2ee;margin-top:15px}.category-sales-bar span{height:100%;width:0}.category-sales-bar .food{background:#145c3b}.category-sales-bar .drink{background:#89b99e}.category-sales-bar .other{background:#a0a7a3}.category-sales-note{font-size:12px;color:var(--muted);margin:10px 0 0;line-height:1.5}.category-sales-other{margin-top:12px;font-size:13px;color:var(--muted)}.category-sales-other strong{color:var(--text)}@media(max-width:420px){.category-sales-card{padding:10px}.category-sales-card strong{font-size:19px}}
 </style>
 </head>
 <body>
@@ -146,6 +148,17 @@ body.signed-in #appHeader{display:none}
    <article class="metric"><div class="metric-icon" data-icon="cup"></div><span>Stok cup tersedia</span><strong id="metricCups">—</strong><small>Persediaan bersama minuman</small></article>
   </div>
   <div id="salesNotice" class="message" role="status"></div>
+  <article class="panel" id="categorySalesPanel">
+   <div class="panel-heading"><div><h2>Penjualan per Kategori Hari Ini</h2><p>Subtotal produk terjual · WIB</p></div></div>
+   <div class="category-sales-grid">
+    <div class="category-sales-card"><div class="metric-icon" data-icon="food"></div><small>Penjualan makanan</small><strong id="categoryFood">—</strong><small id="categoryFoodShare">—</small></div>
+    <div class="category-sales-card"><div class="metric-icon" data-icon="cup"></div><small>Penjualan minuman</small><strong id="categoryDrink">—</strong><small id="categoryDrinkShare">—</small></div>
+   </div>
+   <div class="category-sales-bar" aria-hidden="true"><span class="food" id="categoryFoodBar"></span><span class="drink" id="categoryDrinkBar"></span><span class="other" id="categoryOtherBar"></span></div>
+   <div id="categoryOtherRow" class="category-sales-other" hidden>Kategori lain / tidak diketahui: <strong id="categoryOther">—</strong></div>
+   <div id="categorySalesMessage" class="message" role="status"></div>
+   <p id="categorySalesNote" class="category-sales-note">Kategori mengikuti data produk yang tersedia saat rekap. Subtotal sebelum diskon.</p>
+  </article>
   <div class="overview-grid"><article class="panel"><div class="panel-heading"><div><h2>Grafik Penjualan</h2><p>7 hari terakhir · WIB</p></div><button class="secondary small" data-go="reports">Laporan</button></div><div id="salesChart" class="chart-area empty">Memuat data...</div></article><article class="panel"><div class="panel-heading"><div><h2>Peringatan Stok</h2><p>Persediaan yang perlu diperiksa</p></div><button class="secondary small" data-go="inventory">Kelola</button></div><div id="stockWarnings"></div></article></div>
   <article class="panel"><div class="panel-heading"><div><h2>Transaksi Terakhir</h2><p>Catatan penjualan terbaru</p></div><button class="secondary small" data-go="history">Lihat semua</button></div><div class="table-wrap"><table class="sales-table"><thead><tr><th>Transaksi</th><th>Waktu (WIB)</th><th>Total</th></tr></thead><tbody id="recentSales"><tr><td colspan="3">Memuat data...</td></tr></tbody></table></div></article>
  </section>
@@ -646,7 +659,7 @@ async function logout(){
 }
 let paymentBusy=false, salesRows=null, salesVersion=0, historyPage=0;
 const titles={overview:"Dashboard",pos:"Kasir / POS",inventory:"Persediaan Stok",history:"Riwayat Transaksi",reports:"Laporan Penjualan",cashiers:"Manajemen Kasir",settings:"Pengaturan"};
-const iconPaths={dashboard:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',cart:'<path d="M2 3h3l3 13h11l3-10H6"/><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/>',box:'<path d="M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10"/>',history:'<path d="M3 12a9 9 0 1 1 3 7M3 4v8h8M12 7v5l4 2"/>',chart:'<path d="M3 3v18h18M7 16v-4m5 4V7m5 9V4"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/>',settings:'<circle cx="12" cy="12" r="4"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10l2 2M5 19l2-2M17 7l2-2"/>',wallet:'<rect x="3" y="5" width="18" height="15" rx="2"/><path d="M21 10h-7v5h7M3 8V5l15-3"/>',receipt:'<path d="M5 3h14v18l-3-2-4 2-4-2-3 2zM8 8h8m-8 4h8m-8 4h4"/>',alert:'<path d="M12 3l10 18H2zM12 9v5m0 3v1"/>',cup:'<path d="M5 6h14l-2 15H7zM4 6h16M12 6l3-4"/>'};
+const iconPaths={food:'<path d="M4 3v7a3 3 0 0 0 6 0V3M7 3v18M20 3c-3 2-5 6-5 10h5M20 3v18"/>',dashboard:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',cart:'<path d="M2 3h3l3 13h11l3-10H6"/><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/>',box:'<path d="M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10"/>',history:'<path d="M3 12a9 9 0 1 1 3 7M3 4v8h8M12 7v5l4 2"/>',chart:'<path d="M3 3v18h18M7 16v-4m5 4V7m5 9V4"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/>',settings:'<circle cx="12" cy="12" r="4"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10l2 2M5 19l2-2M17 7l2-2"/>',wallet:'<rect x="3" y="5" width="18" height="15" rx="2"/><path d="M21 10h-7v5h7M3 8V5l15-3"/>',receipt:'<path d="M5 3h14v18l-3-2-4 2-4-2-3 2zM8 8h8m-8 4h8m-8 4h4"/>',alert:'<path d="M12 3l10 18H2zM12 9v5m0 3v1"/>',cup:'<path d="M5 6h14l-2 15H7zM4 6h16M12 6l3-4"/>'};
 document.querySelectorAll('[data-icon]').forEach(el=>{el.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${iconPaths[el.dataset.icon]||''}</svg>`;});
 function closeMenu(){$('sidebar').classList.remove('open');$('menuToggle').setAttribute('aria-expanded','false');}
 function navigate(page,refresh=true){
@@ -675,6 +688,7 @@ function renderStockOverview(){
  $('stockWarnings').innerHTML=low.map(p=>warning(p.name,Number(p.stock_quantity||0),'pcs',Number(p.minimum_stock||0))).join('')+(cupLow?warning('Cup minuman bersama',cups,'cup',cupMin):'')||'<div class="empty">Tidak ada peringatan stok.</div>';
 }
 function clearSalesViews(message='Data penjualan belum tersedia.'){
+ clearCategorySales(message);
  $('metricRevenue').textContent='—';$('metricTransactions').textContent='—';$('reportRevenue').textContent='—';$('reportCount').textContent='—';
  $('salesChart').textContent=message;
  ['recentSales','historyRows','reportRows'].forEach(id=>$(id).innerHTML=`<tr><td colspan="${id==='historyRows'?4:3}">${escapeHTML(message)}</td></tr>`);
@@ -703,12 +717,72 @@ async function loadSales(){
    if(version!==salesVersion||currentUser!==user)return;
    if(error)throw error;const batch=data||[];rows.push(...batch);if(batch.length<chunk)break;
   }
-  salesRows=rows.map(normalizeSale).sort((a,b)=>b.date-a.date);historyPage=0;if(isAdmin()){renderSalesOverview();renderReport();}renderHistory();
+  salesRows=rows.map(normalizeSale).sort((a,b)=>b.date-a.date);historyPage=0;if(isAdmin()){const today=dayOffset(0);renderSalesOverview(today);renderReport();void loadCategorySales(salesRows.filter(r=>r.day===today),user,version);}renderHistory();
  }catch(error){if(version!==salesVersion||currentUser!==user)return;salesRows=null;clearSalesViews();const msg='Data penjualan belum dapat diverifikasi: '+(error.message||'Periksa tabel dan izin Supabase.');['salesNotice','historyMessage','reportMessage'].forEach(id=>setMessage(id,msg));}
+}
+function clearCategorySales(message='Data kategori belum tersedia.'){
+ for(const id of ['categoryFood','categoryDrink','categoryOther','categoryFoodShare','categoryDrinkShare'])$(id).textContent='—';
+ for(const id of ['categoryFoodBar','categoryDrinkBar','categoryOtherBar'])$(id).style.width='0%';
+ $('categoryOtherRow').hidden=true;
+ $('categorySalesNote').textContent='Kategori mengikuti data produk yang tersedia saat rekap. Subtotal sebelum diskon.';
+ setMessage('categorySalesMessage',message);
+}
+function calculateCategorySales(items, productCategories){
+ const totals={food:0,drink:0,other:0};
+ for(const item of items){
+  if(item.subtotal===null||item.subtotal===undefined||item.subtotal==='')throw new Error('Subtotal produk tidak tersedia.');
+  const amount=Number(item.subtotal);
+  if(!Number.isFinite(amount)||amount<0)throw new Error('Subtotal produk tidak valid.');
+  const category=String(productCategories.get(String(item.product_id))||'').trim().toLowerCase();
+  totals[category==='makanan'?'food':category==='minuman'?'drink':'other']+=amount;
+ }
+ return totals;
+}
+function renderCategorySales(totals, netTotal){
+ const gross=totals.food+totals.drink+totals.other;
+ const share=v=>gross>0?v/gross*100:0;
+ $('categoryFood').textContent=rupiah(totals.food);$('categoryDrink').textContent=rupiah(totals.drink);$('categoryOther').textContent=rupiah(totals.other);
+ for(const [key,label] of [['food','Food'],['drink','Drink']])$('category'+label+'Share').textContent=share(totals[key]).toLocaleString('id-ID',{maximumFractionDigits:1})+'% dari subtotal';
+ for(const [key,label] of [['food','Food'],['drink','Drink'],['other','Other']])$('category'+label+'Bar').style.width=share(totals[key])+'%';
+ $('categoryOtherRow').hidden=totals.other===0;
+ let note='Kategori mengikuti data produk yang tersedia saat rekap. Subtotal sebelum diskon.';
+ if(Math.abs(gross-netTotal)>0.005)note+=' Total subtotal '+rupiah(gross)+'; total pembayaran '+rupiah(netTotal)+'. Selisih '+rupiah(gross-netTotal)+' (misalnya diskon).';
+ $('categorySalesNote').textContent=note;
+ setMessage('categorySalesMessage','');
+}
+async function loadCategorySales(daily,user,version){
+ const stillCurrent=()=>currentUser===user&&isAdmin()&&version===salesVersion;
+ if(!stillCurrent())return;
+ clearCategorySales('Memuat penjualan per kategori...');
+ try{
+  const items=[];const saleIds=daily.map(r=>r.saleId);
+  for(let start=0;start<saleIds.length;start+=100){
+   for(let offset=0;;offset+=500){
+    const {data,error}=await supabase.from('sale_items').select('id,sale_id,product_id,subtotal').in('sale_id',saleIds.slice(start,start+100)).order('id',{ascending:true}).range(offset,offset+499);
+    if(!stillCurrent())return;if(error)throw error;
+    const batch=data||[];items.push(...batch);if(batch.length<500)break;
+   }
+  }
+  const covered=new Set(items.map(i=>String(i.sale_id)));
+  if(saleIds.some(id=>!covered.has(String(id))))throw new Error('Sebagian rincian transaksi tidak tersedia.');
+  const ids=[...new Set(items.filter(i=>i.product_id).map(i=>String(i.product_id)))];
+  const productCategories=new Map();
+  if(ids.length){
+   const {data:categoryData,error:categoryError}=await supabase.from('categories').select('id,name');
+   if(!stillCurrent())return;if(categoryError)throw categoryError;
+   const names=new Map((categoryData||[]).map(c=>[String(c.id),c.name]));
+   for(let start=0;start<ids.length;start+=100){
+    const {data,error}=await supabase.from('products').select('id,category_id').in('id',ids.slice(start,start+100));
+    if(!stillCurrent())return;if(error)throw error;
+    for(const p of data||[])productCategories.set(String(p.id),names.get(String(p.category_id)));
+   }
+  }
+  if(stillCurrent())renderCategorySales(calculateCategorySales(items,productCategories),sumSales(daily));
+ }catch(error){if(stillCurrent())clearCategorySales('Gagal memuat penjualan per kategori: '+(error.message||'Periksa koneksi dan izin Supabase.'));}
 }
 function sumSales(rows){return rows.reduce((sum,r)=>sum+r.amount,0);}
 function saleRowsHTML(rows,detail=false){return rows.length?rows.map(r=>`<tr><td>${escapeHTML(r.id)}</td><td>${escapeHTML(new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',dateStyle:'medium',timeStyle:'short'}).format(r.date))}</td><td><strong>${rupiah(r.amount)}</strong></td>${detail?`<td><button class="secondary small" type="button" data-sale-detail="${escapeHTML(r.saleId)}">Lihat / Cetak</button></td>`:''}</tr>`).join(''):`<tr><td colspan="${detail?4:3}">Belum ada transaksi.</td></tr>`;}
-function renderSalesOverview(){if(!salesRows)return;const today=dayOffset(0), daily=salesRows.filter(r=>r.day===today);$('metricRevenue').textContent=rupiah(sumSales(daily));$('metricTransactions').textContent=daily.length;$('recentSales').innerHTML=saleRowsHTML(salesRows.slice(0,5));const days=Array.from({length:7},(_,i)=>dayOffset(i-6)).map(day=>({day,total:sumSales(salesRows.filter(r=>r.day===day))}));const max=Math.max(1,...days.map(d=>d.total));$('salesChart').innerHTML=`<div class="chart-bars">${days.map(d=>`<div class="chart-col"><div class="chart-value">${rupiah(d.total)}</div><div class="chart-track"><div class="chart-fill" style="height:${d.total/max*100}%"></div></div><small>${new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',weekday:'short'}).format(new Date(d.day+'T12:00:00+07:00'))}<br>${d.day.slice(8)}/${d.day.slice(5,7)}</small></div>`).join('')}</div>`;}
+function renderSalesOverview(today=dayOffset(0)){if(!salesRows)return;$('todayLabel').textContent=new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date(today+'T12:00:00+07:00'));const daily=salesRows.filter(r=>r.day===today);$('metricRevenue').textContent=rupiah(sumSales(daily));$('metricTransactions').textContent=daily.length;$('recentSales').innerHTML=saleRowsHTML(salesRows.slice(0,5));const days=Array.from({length:7},(_,i)=>dayOffset(i-6)).map(day=>({day,total:sumSales(salesRows.filter(r=>r.day===day))}));const max=Math.max(1,...days.map(d=>d.total));$('salesChart').innerHTML=`<div class="chart-bars">${days.map(d=>`<div class="chart-col"><div class="chart-value">${rupiah(d.total)}</div><div class="chart-track"><div class="chart-fill" style="height:${d.total/max*100}%"></div></div><small>${new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',weekday:'short'}).format(new Date(d.day+'T12:00:00+07:00'))}<br>${d.day.slice(8)}/${d.day.slice(5,7)}</small></div>`).join('')}</div>`;}
 function renderHistory(){if(!salesRows)return;const pages=Math.max(1,Math.ceil(salesRows.length/20));historyPage=Math.min(historyPage,pages-1);$('historyRows').innerHTML=saleRowsHTML(salesRows.slice(historyPage*20,historyPage*20+20),true);$('historyPageLabel').textContent=`Halaman ${historyPage+1} / ${pages}`;$('historyPrev').disabled=historyPage===0;$('historyNext').disabled=historyPage>=pages-1;}
 function renderReport(){if(!salesRows)return;const from=$('reportFrom').value,to=$('reportTo').value;if(!from||!to||from>to){setMessage('reportMessage','Pilih rentang tanggal yang benar.');$('reportRevenue').textContent='—';$('reportCount').textContent='—';$('reportRows').innerHTML='<tr><td colspan="3">Rentang tanggal tidak valid.</td></tr>';return;}setMessage('reportMessage','');const rows=salesRows.filter(r=>r.day>=from&&r.day<=to);$('reportRevenue').textContent=rupiah(sumSales(rows));$('reportCount').textContent=rows.length;const groups=new Map();for(const r of rows){const g=groups.get(r.day)||{count:0,total:0};g.count++;g.total+=r.amount;groups.set(r.day,g);}$('reportRows').innerHTML=[...groups.entries()].map(([day,g])=>`<tr><td>${dateLabel(day)}</td><td>${g.count}</td><td><strong>${rupiah(g.total)}</strong></td></tr>`).join('')||'<tr><td colspan="3">Tidak ada transaksi dalam rentang ini.</td></tr>';}
 
