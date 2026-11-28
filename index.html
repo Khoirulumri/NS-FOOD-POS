@@ -59,6 +59,10 @@ td{vertical-align:middle}
 nav{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}
 nav a{background:white;border:1px solid #e1e9e3;color:#245a3d;text-decoration:none;padding:11px 15px;border-radius:9px;font-size:13px}
 footer{text-align:center;color:#89958d;font-size:12px;padding:25px}
+
+/* Bagian khusus Admin */
+.admin-only{display:none}
+
 @media(max-width:600px){
 .container{padding:14px}
 .panel{padding:15px}
@@ -104,9 +108,17 @@ header{padding:18px}
 .pos-product-price{font-size:12px;color:#5f6e64}
 .pos-stock-note{font-size:10px;color:#9a6b23;margin-top:4px}
 .pos-message{font-size:12px;line-height:1.5;margin-top:10px}
-@media(max-width:850px){.pos-layout{grid-template-columns:1fr}.pos-product-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.cart-list{max-height:260px}}
-@media(max-width:480px){.pos-product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pos-product-image,.pos-product-placeholder{height:105px}.pos-panel{padding:13px}.pos-actions{flex-direction:column}}
-
+@media(max-width:850px){
+.pos-layout{grid-template-columns:1fr}
+.pos-product-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.cart-list{max-height:260px}
+}
+@media(max-width:480px){
+.pos-product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.pos-product-image,.pos-product-placeholder{height:105px}
+.pos-panel{padding:13px}
+.pos-actions{flex-direction:column}
+}
 </style>
 </head>
 
@@ -144,25 +156,39 @@ header{padding:18px}
       <p id="userRole"></p>
     </div>
 
-
     <section class="pos-layout" aria-label="Kasir NS FOOD">
       <div class="pos-panel">
         <h3>Pesanan</h3>
         <div id="cartList" class="cart-list">
           <div class="cart-empty">Belum ada barang dipilih.</div>
         </div>
+
         <div class="cart-summary">
-          <div class="summary-line"><span>Jumlah barang</span><strong id="cartItemCount">0</strong></div>
-          <div class="summary-line summary-total"><span>Total</span><strong id="cartTotal">Rp0</strong></div>
+          <div class="summary-line">
+            <span>Jumlah barang</span>
+            <strong id="cartItemCount">0</strong>
+          </div>
+
+          <div class="summary-line summary-total">
+            <span>Total</span>
+            <strong id="cartTotal">Rp0</strong>
+          </div>
+
           <div class="cash-input">
             <label for="cashReceived">Uang diterima (Tunai)</label>
             <input id="cashReceived" type="number" min="0" step="1" inputmode="numeric" placeholder="Masukkan jumlah uang">
           </div>
-          <div class="summary-line change-line"><span>Kembalian</span><strong id="cashChange">Rp0</strong></div>
+
+          <div class="summary-line change-line">
+            <span>Kembalian</span>
+            <strong id="cashChange">Rp0</strong>
+          </div>
+
           <div class="pos-actions">
             <button id="saveOrderButton" class="save-order-button" type="button">Simpan Pesanan</button>
             <button id="payButton" class="pay-button" type="button" disabled>Bayar</button>
           </div>
+
           <div id="posMessage" class="pos-message" role="status"></div>
         </div>
       </div>
@@ -175,189 +201,172 @@ header{padding:18px}
           </div>
           <input id="posSearch" type="search" placeholder="Cari produk...">
         </div>
+
         <div class="pos-filters" id="posFilters">
           <button type="button" class="pos-filter active" data-category="Semua">Semua</button>
           <button type="button" class="pos-filter" data-category="Makanan">Makanan</button>
           <button type="button" class="pos-filter" data-category="Minuman">Minuman</button>
         </div>
+
         <div id="posProductGrid" class="pos-product-grid">
           <div class="cart-empty">Memuat produk...</div>
         </div>
       </div>
     </section>
 
-    <div class="panel">
-      <div class="toolbar">
-        <div>
-          <h3 style="margin-bottom:5px">Data Barang</h3>
-          <div class="notice" id="productDescription">Daftar barang NS FOOD</div>
-        </div>
+    <!-- BAGIAN PENGELOLAAN BARANG KHUSUS ADMIN -->
+    <section id="adminManagementSection" class="admin-only">
 
-        <div class="form-actions" style="margin-top:0">
-          <button id="addProductButton" class="primary" type="button" style="display:none">
-            + Tambah Barang
-          </button>
+      <div class="panel">
+        <div class="toolbar">
+          <div class="form-actions" style="margin-top:0">
+            <button id="addProductButton" class="primary" type="button">
+              + Tambah Barang
+            </button>
 
-          <button id="createCashierButton" class="primary" type="button" style="display:none">
-            + Buat Akun Kasir
-          </button>
-        </div>
-      </div>
-
-      <div id="productForm">
-        <h3 id="formTitle">Tambah Barang</h3>
-
-        <form id="productEntryForm">
-          <div class="form-grid">
-            <div>
-              <label for="productName">Nama Barang</label>
-              <input id="productName" type="text" placeholder="Contoh: Es Teler" required>
-            </div>
-
-            <div>
-              <label for="productCategory">Kategori</label>
-              <select id="productCategory" required>
-                <option value="">Pilih kategori</option>
-                <option value="Makanan">Makanan</option>
-                <option value="Minuman">Minuman</option>
-              </select>
-            </div>
-
-            <div>
-              <label for="productPrice">Harga Jual (Rp)</label>
-              <input id="productPrice" type="number" min="0" step="1" placeholder="Contoh: 10000" required>
-            </div>
-
-            <div>
-              <label for="productImage">Foto Produk (JPG, PNG, WEBP)</label>
-              <input id="productImage" type="file" accept="image/jpeg,image/png,image/webp">
-              <img id="imagePreview" class="image-preview" alt="Pratinjau foto produk">
-              <div class="notice">Maksimal ukuran foto 5 MB. Kosongkan jika tidak ingin mengganti foto saat mengedit.</div>
-            </div>
+            <button id="createCashierButton" class="primary" type="button">
+              + Buat Akun Kasir
+            </button>
           </div>
+        </div>
 
-          <div id="foodStockFields">
+        <div id="productForm">
+          <h3 id="formTitle">Tambah Barang</h3>
+
+          <form id="productEntryForm">
             <div class="form-grid">
               <div>
-                <label for="productStock">Jumlah Stok Makanan</label>
-                <input id="productStock" type="number" min="0" step="1" value="0">
+                <label for="productName">Nama Barang</label>
+                <input id="productName" type="text" placeholder="Contoh: Es Teler" required>
               </div>
+
               <div>
-                <label for="productMinimum">Batas Minimum Stok</label>
-                <input id="productMinimum" type="number" min="0" step="1" value="0">
+                <label for="productCategory">Kategori</label>
+                <select id="productCategory" required>
+                  <option value="">Pilih kategori</option>
+                  <option value="Makanan">Makanan</option>
+                  <option value="Minuman">Minuman</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="productPrice">Harga Jual (Rp)</label>
+                <input id="productPrice" type="number" min="0" step="1" placeholder="Contoh: 10000" required>
+              </div>
+
+              <div>
+                <label for="productImage">Foto Produk (JPG, PNG, WEBP)</label>
+                <input id="productImage" type="file" accept="image/jpeg,image/png,image/webp">
+                <img id="imagePreview" class="image-preview" alt="Pratinjau foto produk">
+                <div class="notice">Maksimal ukuran foto 5 MB. Kosongkan jika tidak ingin mengganti foto saat mengedit.</div>
               </div>
             </div>
-          </div>
 
-          <div id="drinkStockNote" class="notice" style="display:none;margin-top:12px">
-            Stok produk Minuman menggunakan persediaan cup bersama.
-            Jumlah cup tidak diisi pada formulir barang ini.
-          </div>
+            <div id="foodStockFields">
+              <div class="form-grid">
+                <div>
+                  <label for="productStock">Jumlah Stok Makanan</label>
+                  <input id="productStock" type="number" min="0" step="1" value="0">
+                </div>
 
-          <div class="form-actions">
-            <button id="saveProductButton" class="primary" type="submit">Simpan Barang</button>
-            <button id="cancelProductButton" class="secondary" type="button">Batal</button>
-          </div>
-          <div id="formMessage" class="message"></div>
-        </form>
-      </div>
-
-      <div id="cashierForm">
-        <h3>Buat Akun Kasir Baru</h3>
-        <p class="notice">
-          Isi data berikut untuk membuat akun login Kasir NS FOOD.
-          Username dan password akan digunakan Kasir untuk masuk ke aplikasi.
-        </p>
-
-        <form id="cashierEntryForm">
-          <div class="form-grid">
-            <div>
-              <label for="cashierFullName">Nama Lengkap Kasir</label>
-              <input
-                id="cashierFullName"
-                type="text"
-                placeholder="Contoh: KASIR NS FOOD"
-                maxlength="100"
-                required
-              >
+                <div>
+                  <label for="productMinimum">Batas Minimum Stok</label>
+                  <input id="productMinimum" type="number" min="0" step="1" value="0">
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label for="cashierUsername">Username Kasir</label>
-              <input
-                id="cashierUsername"
-                type="text"
-                placeholder="Contoh: kasirns"
-                minlength="3"
-                maxlength="30"
-                autocomplete="off"
-                required
-              >
+            <div id="drinkStockNote" class="notice" style="display:none;margin-top:12px">
+              Stok produk Minuman menggunakan persediaan cup bersama.
+              Jumlah cup tidak diisi pada formulir barang ini.
             </div>
 
-            <div>
-              <label for="cashierPassword">Password Kasir</label>
-              <input
-                id="cashierPassword"
-                type="password"
-                placeholder="Minimal 8 karakter"
-                minlength="8"
-                autocomplete="new-password"
-                required
-              >
+            <div class="form-actions">
+              <button id="saveProductButton" class="primary" type="submit">Simpan Barang</button>
+              <button id="cancelProductButton" class="secondary" type="button">Batal</button>
             </div>
-          </div>
 
-          <div class="form-actions">
-            <button id="saveCashierButton" class="primary" type="submit">
-              Buat Akun Kasir
-            </button>
-            <button id="cancelCashierButton" class="secondary" type="button">
-              Batal
-            </button>
-          </div>
+            <div id="formMessage" class="message"></div>
+          </form>
+        </div>
 
-          <div id="cashierMessage" class="message"></div>
-        </form>
+        <div id="cashierForm">
+          <h3>Buat Akun Kasir Baru</h3>
+          <p class="notice">
+            Isi data berikut untuk membuat akun login Kasir NS FOOD.
+            Username dan password akan digunakan Kasir untuk masuk ke aplikasi.
+          </p>
+
+          <form id="cashierEntryForm">
+            <div class="form-grid">
+              <div>
+                <label for="cashierFullName">Nama Lengkap Kasir</label>
+                <input id="cashierFullName" type="text" placeholder="Contoh: KASIR NS FOOD" maxlength="100" required>
+              </div>
+
+              <div>
+                <label for="cashierUsername">Username Kasir</label>
+                <input id="cashierUsername" type="text" placeholder="Contoh: kasirns" minlength="3" maxlength="30" autocomplete="off" required>
+              </div>
+
+              <div>
+                <label for="cashierPassword">Password Kasir</label>
+                <input id="cashierPassword" type="password" placeholder="Minimal 8 karakter" minlength="8" autocomplete="new-password" required>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button id="saveCashierButton" class="primary" type="submit">Buat Akun Kasir</button>
+              <button id="cancelCashierButton" class="secondary" type="button">Batal</button>
+            </div>
+
+            <div id="cashierMessage" class="message"></div>
+          </form>
+        </div>
       </div>
-    </div>
 
-    <div class="panel">
-      <div class="toolbar" style="margin-bottom:15px">
-        <h3 style="margin:0">Daftar Barang</h3>
-        <input id="searchProduct" type="search" placeholder="Cari nama barang...">
+      <!-- DAFTAR BARANG ADMIN -->
+      <div id="productListPanel" class="panel">
+        <div class="toolbar" style="margin-bottom:15px">
+          <h3 style="margin:0">DAFTAR BARANG NSFOOD</h3>
+          <input id="searchProduct" type="search" placeholder="Cari nama barang...">
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Foto</th>
+                <th>Nama Barang</th>
+                <th>Kategori</th>
+                <th>Harga Jual</th>
+                <th>Stok</th>
+                <th>Status</th>
+                <th id="actionHeader">Aksi</th>
+              </tr>
+            </thead>
+
+            <tbody id="productTable">
+              <tr><td colspan="7">Memuat data barang...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="productMessage" class="message"></div>
       </div>
 
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Foto</th>
-              <th>Nama Barang</th>
-              <th>Kategori</th>
-              <th>Harga Jual</th>
-              <th>Stok</th>
-              <th>Status</th>
-              <th id="actionHeader" style="display:none">Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="productTable">
-            <tr><td colspan="7">Memuat data barang...</td></tr>
-          </tbody>
-        </table>
+      <!-- PERSEDIAAN CUP ADMIN -->
+      <div id="drinkInventoryPanel" class="panel">
+        <h3>Persediaan Cup Minuman</h3>
+        <div id="drinkStock">Memuat...</div>
+        <p class="notice">Persediaan cup digunakan bersama oleh seluruh produk Minuman.</p>
       </div>
-      <div id="productMessage" class="message"></div>
-    </div>
 
-    <div class="panel">
-      <h3>Persediaan Cup Minuman</h3>
-      <div id="drinkStock">Memuat...</div>
-      <p class="notice">Persediaan cup digunakan bersama oleh seluruh produk Minuman.</p>
-    </div>
+    </section>
 
     <nav>
       <a href="#" id="dashboardLink">Dashboard</a>
-      <a href="#" id="productsLink">Data Barang</a>
+      <a href="#" id="productsLink" class="admin-only">Data Barang</a>
     </nav>
   </main>
 
@@ -365,8 +374,7 @@ header{padding:18px}
 </div>
 
 <script type="module">
-import { createClient } from
-  "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL = "https://oumbiwxankqqygliiftz.supabase.co";
 const SUPABASE_KEY = "sb_publishable_KWvdJqM3QeG3WMzNMH_CNQ_FPREmZpC";
@@ -384,11 +392,9 @@ let categories = [];
 let products = [];
 let editingProductId = null;
 let editingProductImageUrl = null;
-
 let drinkInventory = null;
 let cart = [];
 let activePOSCategory = "Semua";
-
 
 const categoryId = (name) =>
   categories.find(category => category.name === name)?.id;
@@ -420,6 +426,18 @@ function showDashboard(profile) {
 
   const isAdmin = profile.role === "admin";
 
+  document.getElementById("adminManagementSection").style.display =
+    isAdmin ? "block" : "none";
+
+  document.getElementById("productListPanel").style.display =
+    isAdmin ? "block" : "none";
+
+  document.getElementById("drinkInventoryPanel").style.display =
+    isAdmin ? "block" : "none";
+
+  document.getElementById("productsLink").style.display =
+    isAdmin ? "inline-block" : "none";
+
   document.getElementById("addProductButton").style.display =
     isAdmin ? "inline-block" : "none";
 
@@ -448,7 +466,10 @@ async function loadCategories() {
 
 async function loadDataBarang() {
   const table = document.getElementById("productTable");
-  table.innerHTML = '<tr><td colspan="7">Memuat data barang...</td></tr>';
+
+  if (currentProfile?.role === "admin") {
+    table.innerHTML = '<tr><td colspan="7">Memuat data barang...</td></tr>';
+  }
 
   try {
     const [productResult, drinkResult] = await Promise.all([
@@ -468,9 +489,11 @@ async function loadDataBarang() {
 
   } catch (error) {
     console.error(error);
-    table.innerHTML =
-      '<tr><td colspan="7">Gagal memuat data barang.</td></tr>';
-    showMessage("productMessage", error.message);
+
+    if (currentProfile?.role === "admin") {
+      table.innerHTML = '<tr><td colspan="7">Gagal memuat data barang.</td></tr>';
+      showMessage("productMessage", error.message);
+    }
   }
 }
 
@@ -482,13 +505,9 @@ function renderDrinkStock() {
     return;
   }
 
-  stockElement.textContent =
-    Number(drinkInventory.cup_stock) + " cup";
+  stockElement.textContent = Number(drinkInventory.cup_stock) + " cup";
 
-  if (
-    Number(drinkInventory.cup_stock) <=
-    Number(drinkInventory.minimum_stock)
-  ) {
+  if (Number(drinkInventory.cup_stock) <= Number(drinkInventory.minimum_stock)) {
     stockElement.className = "stock-low";
   } else {
     stockElement.className = "stock-ok";
@@ -497,25 +516,26 @@ function renderDrinkStock() {
 
 function renderProducts() {
   const table = document.getElementById("productTable");
-  const isAdmin = currentProfile?.role === "admin";
-  const keyword = document.getElementById("searchProduct").value
-    .trim().toLowerCase();
+
+  if (currentProfile?.role !== "admin") return;
+
+  const keyword = document.getElementById("searchProduct").value.trim().toLowerCase();
 
   const visibleProducts = products.filter(product => {
     const category = categories.find(c => c.id === product.category_id);
     const categoryName = category?.name || "Tidak diketahui";
 
-    const activeForUser = isAdmin || product.is_active;
-    const matchesSearch =
-      product.name.toLowerCase().includes(keyword) ||
-      categoryName.toLowerCase().includes(keyword);
-
-    return activeForUser && matchesSearch;
+    return (
+      (currentProfile.role === "admin" || product.is_active) &&
+      (
+        product.name.toLowerCase().includes(keyword) ||
+        categoryName.toLowerCase().includes(keyword)
+      )
+    );
   });
 
   if (visibleProducts.length === 0) {
-    table.innerHTML =
-      '<tr><td colspan="7">Belum ada barang yang ditemukan.</td></tr>';
+    table.innerHTML = '<tr><td colspan="7">Belum ada barang yang ditemukan.</td></tr>';
     return;
   }
 
@@ -543,6 +563,7 @@ function renderProducts() {
     const row = document.createElement("tr");
 
     const imageCell = document.createElement("td");
+
     if (product.image_url) {
       const image = document.createElement("img");
       image.className = "product-thumb";
@@ -575,30 +596,27 @@ function renderProducts() {
 
     row.append(imageCell, nameCell, categoryCell, priceCell, stockCell, statusCell);
 
-    if (isAdmin) {
-      const actionCell = document.createElement("td");
-      const actions = document.createElement("div");
-      actions.className = "actions";
+    const actionCell = document.createElement("td");
+    const actions = document.createElement("div");
+    actions.className = "actions";
 
-      const editButton = document.createElement("button");
-      editButton.className = "secondary";
-      editButton.textContent = "Edit";
-      editButton.addEventListener("click", () => editProduct(product.id));
+    const editButton = document.createElement("button");
+    editButton.className = "secondary";
+    editButton.textContent = "Edit";
+    editButton.addEventListener("click", () => editProduct(product.id));
 
-      const toggleButton = document.createElement("button");
-      toggleButton.className = product.is_active ? "danger" : "primary";
-      toggleButton.textContent = product.is_active ? "Nonaktifkan" : "Aktifkan";
-      toggleButton.addEventListener("click", () => toggleProduct(product));
+    const toggleButton = document.createElement("button");
+    toggleButton.className = product.is_active ? "danger" : "primary";
+    toggleButton.textContent = product.is_active ? "Nonaktifkan" : "Aktifkan";
+    toggleButton.addEventListener("click", () => toggleProduct(product));
 
-      actions.append(editButton, toggleButton);
-      actionCell.appendChild(actions);
-      row.appendChild(actionCell);
-    }
+    actions.append(editButton, toggleButton);
+    actionCell.appendChild(actions);
+    row.appendChild(actionCell);
 
     table.appendChild(row);
   });
 }
-
 
 function getProductCategoryName(product) {
   return categories.find(category => category.id === product.category_id)?.name || "";
@@ -608,6 +626,7 @@ function getAvailableStock(product) {
   if (product.stock_mode === "shared_cups") {
     return Number(drinkInventory?.cup_stock || 0);
   }
+
   return Number(product.stock_quantity || 0);
 }
 
@@ -622,14 +641,17 @@ function renderPOSProducts() {
   if (!grid) return;
 
   const keyword = document.getElementById("posSearch").value.trim().toLowerCase();
+
   const availableProducts = products.filter(product => {
     const categoryName = getProductCategoryName(product);
+
     return product.is_active &&
       (activePOSCategory === "Semua" || categoryName === activePOSCategory) &&
       product.name.toLowerCase().includes(keyword);
   });
 
   grid.innerHTML = "";
+
   if (availableProducts.length === 0) {
     grid.innerHTML = '<div class="cart-empty" style="grid-column:1/-1">Produk tidak ditemukan.</div>';
     return;
@@ -639,6 +661,7 @@ function renderPOSProducts() {
     const stock = getAvailableStock(product);
     const inCart = cart.find(item => item.product_id === product.id)?.quantity || 0;
     const isOut = stock <= inCart;
+
     const card = document.createElement("button");
     card.type = "button";
     card.className = "pos-product-card";
@@ -679,6 +702,7 @@ function renderPOSProducts() {
 
 function addToCart(product) {
   if (!currentProfile) return;
+
   const available = getAvailableStock(product);
   const existing = cart.find(item => item.product_id === product.id);
 
@@ -706,9 +730,11 @@ function addToCart(product) {
 function changeCartQuantity(productId, change) {
   const item = cart.find(entry => entry.product_id === productId);
   const product = products.find(entry => entry.id === productId);
+
   if (!item || !product) return;
 
   const nextQuantity = item.quantity + change;
+
   if (nextQuantity <= 0) {
     cart = cart.filter(entry => entry.product_id !== productId);
   } else {
@@ -716,6 +742,7 @@ function changeCartQuantity(productId, change) {
       showPOSMessage("Stok " + product.name + " tidak mencukupi.");
       return;
     }
+
     item.quantity = nextQuantity;
   }
 
@@ -733,6 +760,7 @@ function renderCart() {
   const total = cartSubtotal();
 
   list.innerHTML = "";
+
   if (cart.length === 0) {
     list.innerHTML = '<div class="cart-empty">Belum ada barang dipilih.</div>';
   } else {
@@ -741,39 +769,48 @@ function renderCart() {
       row.className = "cart-item";
 
       const info = document.createElement("div");
+
       const name = document.createElement("div");
       name.className = "cart-item-name";
       name.textContent = item.name + " (" + item.quantity + "x)";
+
       const price = document.createElement("div");
       price.className = "cart-item-price";
       price.textContent = rupiah(item.unit_price * item.quantity);
+
       info.append(name, price);
 
       const controls = document.createElement("div");
       controls.className = "qty-control";
+
       const minus = document.createElement("button");
       minus.type = "button";
       minus.textContent = "−";
       minus.setAttribute("aria-label", "Kurangi " + item.name);
       minus.addEventListener("click", () => changeCartQuantity(item.product_id, -1));
+
       const qty = document.createElement("span");
       qty.className = "qty-number";
       qty.textContent = item.quantity;
+
       const plus = document.createElement("button");
       plus.type = "button";
       plus.textContent = "+";
       plus.setAttribute("aria-label", "Tambah " + item.name);
       plus.addEventListener("click", () => changeCartQuantity(item.product_id, 1));
+
       const remove = document.createElement("button");
       remove.type = "button";
       remove.className = "remove";
       remove.textContent = "×";
       remove.setAttribute("aria-label", "Hapus " + item.name);
+
       remove.addEventListener("click", () => {
         cart = cart.filter(entry => entry.product_id !== item.product_id);
         renderCart();
         renderPOSProducts();
       });
+
       controls.append(minus, qty, plus, remove);
       row.append(info, controls);
       list.appendChild(row);
@@ -782,6 +819,7 @@ function renderCart() {
 
   document.getElementById("cartItemCount").textContent = count;
   document.getElementById("cartTotal").textContent = rupiah(total);
+
   updateCashChange();
   renderPOSProducts();
 }
@@ -790,14 +828,18 @@ function updateCashChange() {
   const total = cartSubtotal();
   const received = Number(document.getElementById("cashReceived").value || 0);
   const change = Math.max(0, received - total);
+
   document.getElementById("cashChange").textContent = rupiah(change);
+
   document.getElementById("payButton").disabled =
     cart.length === 0 || received < total || total <= 0;
 }
 
 function saveOrderDraft() {
   if (!currentProfile) return;
+
   const key = "nsfood-order-" + currentProfile.username;
+
   try {
     localStorage.setItem(key, JSON.stringify(cart));
     showPOSMessage("Pesanan sementara tersimpan di perangkat ini.", "success");
@@ -808,9 +850,12 @@ function saveOrderDraft() {
 
 function restoreOrderDraft() {
   if (!currentProfile) return;
+
   const key = "nsfood-order-" + currentProfile.username;
+
   try {
     const saved = JSON.parse(localStorage.getItem(key) || "[]");
+
     if (Array.isArray(saved)) {
       cart = saved.filter(item =>
         products.some(product => product.id === item.product_id && product.is_active)
@@ -820,6 +865,7 @@ function restoreOrderDraft() {
         unit_price: Number(item.unit_price),
         quantity: Math.max(1, Math.floor(Number(item.quantity) || 1))
       }));
+
       renderCart();
     }
   } catch (error) {
@@ -832,6 +878,7 @@ async function completePayment() {
 
   const total = cartSubtotal();
   const payment = Number(document.getElementById("cashReceived").value || 0);
+
   if (!Number.isFinite(payment) || payment < total) {
     showPOSMessage("Uang yang diterima belum mencukupi.");
     return;
@@ -857,12 +904,20 @@ async function completePayment() {
 
     const key = "nsfood-order-" + currentProfile.username;
     localStorage.removeItem(key);
+
     const saleId = data;
+
     cart = [];
     document.getElementById("cashReceived").value = "";
+
     renderCart();
     await loadDataBarang();
-    showPOSMessage("Transaksi berhasil! Nomor transaksi: " + String(saleId), "success");
+
+    showPOSMessage(
+      "Transaksi berhasil! Nomor transaksi: " + String(saleId),
+      "success"
+    );
+
   } catch (error) {
     console.error("Transaksi gagal:", error);
     showPOSMessage(error.message || "Transaksi gagal diproses.");
@@ -880,13 +935,15 @@ document.getElementById("payButton").addEventListener("click", completePayment);
 document.getElementById("posFilters").addEventListener("click", event => {
   const button = event.target.closest("button[data-category]");
   if (!button) return;
+
   activePOSCategory = button.dataset.category;
+
   document.querySelectorAll(".pos-filter").forEach(filter => {
     filter.classList.toggle("active", filter === button);
   });
+
   renderPOSProducts();
 });
-
 
 function updateStockFields() {
   const category = document.getElementById("productCategory").value;
@@ -906,29 +963,29 @@ function openProductForm(product = null) {
   editingProductId = product?.id || null;
 
   document.getElementById("productEntryForm").reset();
+
   editingProductImageUrl = product?.image_url || null;
+
   const imagePreview = document.getElementById("imagePreview");
   imagePreview.src = editingProductImageUrl || "";
   imagePreview.style.display = editingProductImageUrl ? "block" : "none";
+
   document.getElementById("formTitle").textContent =
     product ? "Edit Barang" : "Tambah Barang";
 
   document.getElementById("productCategory").value =
-    product
-      ? categories.find(c => c.id === product.category_id)?.name || ""
-      : "";
+    product ? categories.find(c => c.id === product.category_id)?.name || "" : "";
 
   document.getElementById("productName").value = product?.name || "";
   document.getElementById("productPrice").value = product?.sale_price ?? "";
-  document.getElementById("productStock").value =
-    product?.stock_quantity ?? 0;
-  document.getElementById("productMinimum").value =
-    product?.minimum_stock ?? 0;
+  document.getElementById("productStock").value = product?.stock_quantity ?? 0;
+  document.getElementById("productMinimum").value = product?.minimum_stock ?? 0;
 
   document.getElementById("formMessage").textContent = "";
   document.getElementById("productForm").style.display = "block";
 
   updateStockFields();
+
   document.getElementById("productForm").scrollIntoView({
     behavior: "smooth",
     block: "start"
@@ -981,11 +1038,17 @@ document.getElementById("productImage").addEventListener("change", event => {
   }
 
   const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+
   if (!allowedTypes.includes(file.type) || file.size > 5 * 1024 * 1024) {
     event.target.value = "";
     preview.src = editingProductImageUrl || "";
     preview.style.display = editingProductImageUrl ? "block" : "none";
-    showMessage("formMessage", "Pilih foto JPG, PNG, atau WEBP dengan ukuran maksimal 5 MB.");
+
+    showMessage(
+      "formMessage",
+      "Pilih foto JPG, PNG, atau WEBP dengan ukuran maksimal 5 MB."
+    );
+
     return;
   }
 
@@ -1020,7 +1083,7 @@ document.getElementById("cancelCashierButton").addEventListener("click", () => {
 
 document.getElementById("cashierEntryForm").addEventListener(
   "submit",
-  async (event) => {
+  async event => {
     event.preventDefault();
 
     if (currentProfile?.role !== "admin") {
@@ -1045,18 +1108,12 @@ document.getElementById("cashierEntryForm").addEventListener(
       const { data, error } = await supabase.functions.invoke(
         "create-cashier",
         {
-          body: {
-            username,
-            full_name,
-            password
-          }
+          body: { username, full_name, password }
         }
       );
 
       if (error) {
-        throw new Error(
-          data?.message || error.message || "Gagal membuat akun Kasir."
-        );
+        throw new Error(data?.message || error.message || "Gagal membuat akun Kasir.");
       }
 
       if (data?.error || data?.success === false) {
@@ -1073,10 +1130,12 @@ document.getElementById("cashierEntryForm").addEventListener(
 
     } catch (error) {
       console.error("Pembuatan akun Kasir gagal:", error);
+
       showMessage(
         "cashierMessage",
         error.message || "Tidak dapat menghubungi server."
       );
+
     } finally {
       document.getElementById("cashierPassword").value = "";
       saveButton.disabled = false;
@@ -1097,7 +1156,7 @@ document.getElementById("searchProduct").addEventListener("input", renderProduct
 
 document.getElementById("productEntryForm").addEventListener(
   "submit",
-  async (event) => {
+  async event => {
     event.preventDefault();
 
     if (currentProfile?.role !== "admin") {
@@ -1108,16 +1167,10 @@ document.getElementById("productEntryForm").addEventListener(
     const name = document.getElementById("productName").value.trim();
     const categoryName = document.getElementById("productCategory").value;
     const price = Number(document.getElementById("productPrice").value);
-
     const isDrink = categoryName === "Minuman";
 
-    const stock = isDrink
-      ? 0
-      : Number(document.getElementById("productStock").value);
-
-    const minimum = isDrink
-      ? 0
-      : Number(document.getElementById("productMinimum").value);
+    const stock = isDrink ? 0 : Number(document.getElementById("productStock").value);
+    const minimum = isDrink ? 0 : Number(document.getElementById("productMinimum").value);
 
     const selectedCategoryId = categoryId(categoryName);
 
@@ -1194,22 +1247,23 @@ document.getElementById("productEntryForm").addEventListener(
 
       showMessage(
         "formMessage",
-        editingProductId
-          ? "Barang berhasil diperbarui."
-          : "Barang berhasil ditambahkan.",
+        editingProductId ? "Barang berhasil diperbarui." : "Barang berhasil ditambahkan.",
         "success"
       );
 
       editingProductId = null;
       editingProductImageUrl = null;
+
       document.getElementById("productImage").value = "";
       document.getElementById("imagePreview").style.display = "none";
       document.getElementById("productForm").style.display = "none";
+
       await loadDataBarang();
 
     } catch (error) {
       console.error(error);
       showMessage("formMessage", error.message || "Gagal menyimpan barang.");
+
     } finally {
       saveButton.disabled = false;
       saveButton.textContent = "Simpan Barang";
@@ -1242,7 +1296,7 @@ async function checkSession() {
   }
 }
 
-loginForm.addEventListener("submit", async (event) => {
+loginForm.addEventListener("submit", async event => {
   event.preventDefault();
 
   loginButton.disabled = true;
@@ -1259,9 +1313,7 @@ loginForm.addEventListener("submit", async (event) => {
     );
 
     if (error || !data?.session) {
-      throw new Error(
-        data?.message || error?.message || "Login gagal"
-      );
+      throw new Error(data?.message || error?.message || "Login gagal");
     }
 
     const { error: sessionError } = await supabase.auth.setSession({
@@ -1278,8 +1330,10 @@ loginForm.addEventListener("submit", async (event) => {
 
   } catch (error) {
     console.error("Login gagal:", error);
+
     loginMessage.textContent =
       error.message || "Tidak dapat menghubungi server.";
+
   } finally {
     loginButton.disabled = false;
     loginButton.textContent = "Masuk";
@@ -1288,11 +1342,15 @@ loginForm.addEventListener("submit", async (event) => {
 
 document.getElementById("logoutButton").addEventListener("click", async () => {
   await supabase.auth.signOut();
+
   currentProfile = null;
   cart = [];
+
   renderCart();
+
   dashboard.style.display = "none";
   loginPage.style.display = "flex";
+
   loginForm.reset();
   loginMessage.textContent = "";
 });
@@ -1304,7 +1362,10 @@ document.getElementById("dashboardLink").addEventListener("click", event => {
 
 document.getElementById("productsLink").addEventListener("click", event => {
   event.preventDefault();
-  document.getElementById("productForm").scrollIntoView({
+
+  if (currentProfile?.role !== "admin") return;
+
+  document.getElementById("productListPanel").scrollIntoView({
     behavior: "smooth",
     block: "start"
   });
