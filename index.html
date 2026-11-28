@@ -93,6 +93,8 @@ body.signed-in #appHeader{display:none}
 @media(max-width:1000px){.pos-layout,.admin-grid{grid-template-columns:1fr}.page-body{padding:20px}.topbar{padding:15px 20px}}
 @media(max-width:760px){#sidebar{transform:translateX(-100%);transition:transform .2s;box-shadow:10px 0 40px #102c2030;top:68px}#sidebar.open{transform:translateX(0)}.workspace{margin-left:0}.topbar{min-height:68px;padding:10px 14px}.topbar h1{font-size:18px}.topbar .eyebrow{display:none}#menuToggle{display:inline-flex;padding:8px 10px}.top-user .avatar{display:none}.top-user strong{max-width:95px}.page-body{padding:15px}.welcome{align-items:flex-start;flex-direction:column}.welcome h2{font-size:22px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.metric{padding:12px}.metric strong{font-size:21px}.panel{padding:15px}.chart-bars{gap:5px}.report-metrics strong{font-size:19px}.panel-heading{flex-wrap:wrap}.history-nav{justify-content:center}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+.cup-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}.cup-metrics>div{border:1px solid var(--line);border-radius:10px;background:#f7faf8;padding:12px;min-width:0}.cup-metrics small{display:block;color:var(--muted);font-size:12px}.cup-metrics strong{display:block;margin-top:7px;color:var(--green);font-size:24px;overflow-wrap:anywhere}.cup-stock-status{margin:8px 0;font-size:13px;font-weight:700}.cup-minimum-form{border-top:1px solid var(--line);margin-top:16px;padding-top:6px}.stock-help{font-size:12px;color:var(--muted);line-height:1.5;margin:0 0 12px}.stock-empty{color:var(--red);font-weight:700}.stock-near{color:#94611d;font-weight:700}.stock-state{display:block;font-size:11px;margin-top:4px}.cup-metrics .stock-empty{color:var(--red)}.cup-metrics .stock-near{color:#94611d}
 </style>
 </head>
 <body>
@@ -136,7 +138,7 @@ body.signed-in #appHeader{display:none}
    <article class="metric"><div class="metric-icon" data-icon="wallet"></div><span>Penjualan hari ini</span><strong id="metricRevenue">—</strong><small>WIB · transaksi tercatat</small></article>
    <article class="metric"><div class="metric-icon" data-icon="receipt"></div><span>Transaksi hari ini</span><strong id="metricTransactions">—</strong><small>WIB · transaksi tercatat</small></article>
    <article class="metric"><div class="metric-icon" data-icon="box"></div><span>Total barang</span><strong id="metricProducts">—</strong><small>Seluruh data produk</small></article>
-   <article class="metric"><div class="metric-icon warning" data-icon="alert"></div><span>Barang stok menipis</span><strong id="metricLow">—</strong><small>Produk aktif · sesuai batas stok</small></article>
+   <article class="metric"><div class="metric-icon warning" data-icon="alert"></div><span>Peringatan persediaan</span><strong id="metricLow">—</strong><small>Makanan aktif + cup bersama</small></article>
    <article class="metric"><div class="metric-icon" data-icon="cup"></div><span>Stok cup tersedia</span><strong id="metricCups">—</strong><small>Persediaan bersama minuman</small></article>
   </div>
   <div id="salesNotice" class="message" role="status"></div>
@@ -185,10 +187,10 @@ body.signed-in #appHeader{display:none}
       <div id="foodStockFields">
        <div class="two-col">
         <div class="field"><label for="productStock">Stok Makanan</label><input id="productStock" type="number" min="0" step="1" value="0"></div>
-        <div class="field"><label for="productMinimum">Minimal Stok</label><input id="productMinimum" type="number" min="0" step="1" value="0"></div>
+        <div class="field"><label for="productMinimum">Minimum Stok</label><input id="productMinimum" type="number" min="0" step="1" value="0"></div>
        </div>
       </div>
-      <div id="drinkStockNote" class="notice" style="display:none">Stok minuman menggunakan persediaan cup bersama. Atur jumlah cup pada panel Persediaan Cup.</div>
+      <div id="drinkStockNote" class="notice" style="display:none">Stok dan minimum stok minuman menggunakan persediaan cup bersama. Atur keduanya pada panel Persediaan Cup Minuman.</div>
       <div class="field"><label for="productImage">Foto Barang (opsional)</label><input id="productImage" type="file" accept="image/*"><img id="imagePreview" alt="Pratinjau foto barang"></div>
       <div class="form-actions"><button id="saveProductButton" type="submit">Simpan Barang</button><button id="cancelProductButton" type="button" class="secondary">Batal</button></div>
       <div id="formMessage" class="message"></div>
@@ -198,10 +200,17 @@ body.signed-in #appHeader{display:none}
    </div>
    <div class="panel" id="drinkInventoryPanel">
     <h2>Persediaan Cup Minuman</h2>
-    <div class="summary-line"><span>Stok cup tersedia</span><strong id="drinkStock">0</strong></div>
+    <div class="cup-metrics"><div><small>Stok cup tersedia</small><strong id="drinkStock">—</strong></div><div><small>Minimum stok cup</small><strong id="drinkMinimum">—</strong></div></div>
+    <div id="cupStockStatus" class="cup-stock-status" role="status"></div>
     <div class="field"><label for="addCupQuantity">Tambah cup</label><input id="addCupQuantity" type="number" min="1" step="1" placeholder="Jumlah cup yang ditambahkan"></div>
     <button id="addCupButton" type="button">Tambah Stok Cup</button>
-    <div id="cupMessage" class="message"></div>
+    <div id="cupMessage" class="message" role="status"></div>
+    <form id="cupMinimumForm" class="cup-minimum-form">
+     <div class="field"><label for="cupMinimumInput">Minimum stok cup</label><input id="cupMinimumInput" type="number" min="0" step="1" required placeholder="Contoh: 10" aria-describedby="cupMinimumHelp"></div>
+     <p id="cupMinimumHelp" class="stock-help">Peringatan muncul saat stok mencapai atau berada di bawah batas ini. Penjualan tetap bisa dilakukan selama cup tersedia.</p>
+     <button id="saveCupMinimum" type="submit" class="secondary">Simpan Minimum Stok</button>
+     <div id="cupMinimumMessage" class="message" role="status"></div>
+    </form>
    </div>
   </div>
   <div class="panel" id="productListPanel">
@@ -209,7 +218,7 @@ body.signed-in #appHeader{display:none}
    <input id="searchProduct" placeholder="Cari barang..." style="max-width:350px;margin-bottom:12px">
    <div class="table-wrap">
     <table id="productTable">
-     <thead><tr><th>Nama Barang</th><th>Kategori</th><th>Harga</th><th>Stok</th><th>Status</th><th>Aksi</th></tr></thead>
+     <thead><tr><th>Nama Barang</th><th>Kategori</th><th>Harga</th><th>Stok</th><th>Minimum stok</th><th>Status</th><th>Aksi</th></tr></thead>
      <tbody></tbody>
     </table>
    </div>
@@ -304,7 +313,7 @@ async function loadDataBarang(){
  if(inventoryResult.error) throw inventoryResult.error;
  products=productResult.data||[];
  drinkInventory=inventoryResult.data||{id:1,cup_stock:0,minimum_stock:0};
- $("drinkStock").textContent=Number(drinkInventory.cup_stock||0).toLocaleString("id-ID");
+ renderCupStock();
  renderPOSProducts(); if(isAdmin()){renderProducts();renderStockOverview();}
 }
 function renderPOSProducts(){
@@ -454,9 +463,9 @@ function renderProducts(){
   const drink=categoryIsDrink(getProductCategoryName(p));
   const stock=drink?Number(drinkInventory?.cup_stock||0):Number(p.stock_quantity||0);
   const minimum=drink?Number(drinkInventory?.minimum_stock||0):Number(p.minimum_stock||0);
-  const low=stock<=minimum;
-  return `<tr><td><div class="product-name-cell">${p.image_url?`<img class="product-thumb" src="${escapeHTML(p.image_url)}" alt="">`:""}<strong>${escapeHTML(p.name)}</strong></div></td><td>${escapeHTML(getProductCategoryName(p))}</td><td>${rupiah(p.sale_price)}</td><td><span class="${low?"stock-low":"stock-ok"}">${stock}</span>${drink?'<small class="cup-shared">Cup bersama</small>':""}${low?' <span class="badge">Stok menipis</span>':""}</td><td>${p.is_active?'<span class="badge">Aktif</span>':'<span class="badge">Nonaktif</span>'}</td><td><div class="form-actions"><button type="button" class="small secondary" data-edit-product="${escapeHTML(p.id)}">Edit</button><button type="button" class="small ${p.is_active?"danger":"secondary"}" data-toggle-product="${escapeHTML(p.id)}">${p.is_active?"Nonaktifkan":"Aktifkan"}</button>${!p.is_active?`<button type="button" class="small danger" data-delete-product="${escapeHTML(p.id)}">Hapus</button>`:""}</div></td></tr>`;
- }).join("")||'<tr><td colspan="6">Belum ada data barang.</td></tr>';
+  const state=stockState(stock,minimum);
+  return `<tr><td><div class="product-name-cell">${p.image_url?`<img class="product-thumb" src="${escapeHTML(p.image_url)}" alt="">`:""}<strong>${escapeHTML(p.name)}</strong></div></td><td>${escapeHTML(getProductCategoryName(p))}</td><td>${rupiah(p.sale_price)}</td><td><span class="${state.css}">${stock} ${drink?"cup":"pcs"}</span>${drink?'<small class="cup-shared">Cup bersama</small>':""}<small class="stock-state ${state.css}">${state.label}</small></td><td>${minimum} ${drink?"cup":"pcs"}${drink?'<small class="cup-shared">Bersama</small>':""}</td><td>${p.is_active?'<span class="badge">Aktif</span>':'<span class="badge">Nonaktif</span>'}</td><td><div class="form-actions"><button type="button" class="small secondary" data-edit-product="${escapeHTML(p.id)}">Edit</button><button type="button" class="small ${p.is_active?"danger":"secondary"}" data-toggle-product="${escapeHTML(p.id)}">${p.is_active?"Nonaktifkan":"Aktifkan"}</button>${!p.is_active?`<button type="button" class="small danger" data-delete-product="${escapeHTML(p.id)}">Hapus</button>`:""}</div></td></tr>`;
+ }).join("")||'<tr><td colspan="7">Belum ada data barang.</td></tr>';
 }
 async function toggleProduct(id){
  if(!isAdmin())return;
@@ -475,6 +484,40 @@ async function deleteProduct(id){
  const {error}=await supabase.from("products").delete().eq("id",id);
  if(error){setMessage("productMessage","Gagal menghapus barang: "+error.message);return;}
  await loadDataBarang();setMessage("productMessage","Barang berhasil dihapus.",true);
+}
+function stockState(stock,minimum){
+ if(stock<=0)return {label:"Stok habis",css:"stock-empty"};
+ if(stock<=minimum)return {label:"Stok menipis",css:"stock-near"};
+ return {label:"Stok aman",css:"stock-ok"};
+}
+function renderCupStock(){
+ const stock=Number(drinkInventory?.cup_stock||0), minimum=Number(drinkInventory?.minimum_stock||0);
+ const state=stockState(stock,minimum);
+ $("drinkStock").textContent=stock.toLocaleString("id-ID");
+ $("drinkStock").className=state.css;
+ $("drinkMinimum").textContent=minimum.toLocaleString("id-ID");
+ $("cupMinimumInput").value=minimum;
+ $("cupStockStatus").textContent=state.label;
+ $("cupStockStatus").className="cup-stock-status "+state.css;
+}
+let cupMinimumBusy=false;
+async function saveCupMinimum(event){
+ event.preventDefault();
+ if(!isAdmin()||cupMinimumBusy)return;
+ const input=$("cupMinimumInput"), raw=input.value.trim(), minimum=Number(raw);
+ if(!raw||!Number.isSafeInteger(minimum)||minimum<0||minimum>2147483647){setMessage("cupMinimumMessage","Masukkan minimum stok berupa bilangan bulat yang valid dan tidak negatif.");return;}
+ cupMinimumBusy=true;$("saveCupMinimum").disabled=true;input.disabled=true;
+ setMessage("cupMinimumMessage","Menyimpan minimum stok...");
+ try{
+  const {data,error}=await supabase.from("drink_inventory").update({minimum_stock:minimum,updated_at:new Date().toISOString()}).eq("id",1).select("minimum_stock").maybeSingle();
+  if(error)throw error;
+  if(!data||Number(data.minimum_stock)!==minimum)throw new Error("Perubahan belum dapat dikonfirmasi. Periksa izin dan data persediaan.");
+  drinkInventory={...drinkInventory,minimum_stock:minimum};
+  renderCupStock();renderProducts();renderStockOverview();
+  try{await loadDataBarang();}catch(refreshError){setMessage("cupMinimumMessage","Minimum stok sudah tersimpan. Muat ulang halaman untuk memperbarui data persediaan.",true);return;}
+  setMessage("cupMinimumMessage",`Minimum stok cup berhasil disimpan: ${minimum} cup.`,true);
+ }catch(error){setMessage("cupMinimumMessage","Gagal menyimpan minimum stok: "+(error.message||"Periksa izin Supabase."));}
+ finally{cupMinimumBusy=false;$("saveCupMinimum").disabled=false;input.disabled=false;}
 }
 async function addCupStock(){
  if(!isAdmin())return;
@@ -567,10 +610,11 @@ $('todayLabel').textContent=new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jaka
 $('reportFrom').value=dayOffset(-6);$('reportTo').value=dayOffset(0);
 function renderStockOverview(){
  const active=products.filter(p=>p.is_active), cups=Number(drinkInventory?.cup_stock||0), cupMin=Number(drinkInventory?.minimum_stock||0);
- const low=active.filter(p=>categoryIsDrink(getProductCategoryName(p))?cups<=cupMin:Number(p.stock_quantity||0)<=Number(p.minimum_stock||0));
- $('metricProducts').textContent=products.length;$('metricLow').textContent=low.length;$('metricCups').textContent=cups;
- const warning=(name,qty,unit)=>`<div class="stock-warning"><div><strong>${escapeHTML(name)}</strong><small>${qty===0?'Stok habis':'Stok menipis'}</small></div><strong>${qty} ${unit}</strong></div>`;
- $('stockWarnings').innerHTML=low.filter(p=>!categoryIsDrink(getProductCategoryName(p))).map(p=>warning(p.name,Number(p.stock_quantity||0),'pcs')).join('')+(cups<=cupMin?warning('Cup minuman bersama',cups,'cup'):'')||'<div class="empty">Tidak ada peringatan stok.</div>';
+ const low=active.filter(p=>!categoryIsDrink(getProductCategoryName(p))&&Number(p.stock_quantity||0)<=Number(p.minimum_stock||0));
+ const cupLow=cups<=cupMin;
+ $('metricProducts').textContent=products.length;$('metricLow').textContent=low.length+(cupLow?1:0);$('metricCups').textContent=cups;
+ const warning=(name,qty,unit,minimum)=>`<div class="stock-warning"><div><strong>${escapeHTML(name)}</strong><small>${stockState(qty,minimum).label} · Minimum: ${minimum} ${unit}</small></div><strong>${qty} ${unit}</strong></div>`;
+ $('stockWarnings').innerHTML=low.map(p=>warning(p.name,Number(p.stock_quantity||0),'pcs',Number(p.minimum_stock||0))).join('')+(cupLow?warning('Cup minuman bersama',cups,'cup',cupMin):'')||'<div class="empty">Tidak ada peringatan stok.</div>';
 }
 function clearSalesViews(message='Data penjualan belum tersedia.'){
  $('metricRevenue').textContent='—';$('metricTransactions').textContent='—';$('reportRevenue').textContent='—';$('reportCount').textContent='—';
@@ -730,6 +774,7 @@ $("createCashierButton").addEventListener("click",()=>{if(!isAdmin()||cashierEdi
 $("cancelCashierButton").addEventListener("click",()=>{$("cashierForm").style.display="none";$("cashierEntryForm").reset();setMessage("cashierMessage","");});
 $("cashierEntryForm").addEventListener("submit",createCashier);
 $("addCupButton").addEventListener("click",addCupStock);
+$("cupMinimumForm").addEventListener("submit",saveCupMinimum);
 $("productTable").addEventListener("click",event=>{
  const edit=event.target.closest("[data-edit-product]"),toggle=event.target.closest("[data-toggle-product]"),del=event.target.closest("[data-delete-product]");
  if(edit){const p=products.find(x=>String(x.id)===String(edit.dataset.editProduct));if(p)openProductForm(p);}
