@@ -65,6 +65,48 @@ footer{text-align:center;color:#89958d;font-size:12px;padding:25px}
 .form-grid{grid-template-columns:1fr}
 header{padding:18px}
 }
+
+/* Tampilan kasir NS FOOD */
+.pos-layout{display:grid;grid-template-columns:minmax(280px,0.85fr) minmax(0,1.65fr);gap:16px;align-items:start;margin:18px 0}
+.pos-panel{background:#fff;border:1px solid #e5ece7;border-radius:14px;padding:16px;min-width:0}
+.pos-panel h3{margin:0 0 13px}
+.cart-list{display:flex;flex-direction:column;gap:10px;max-height:390px;overflow:auto}
+.cart-empty{padding:28px 12px;text-align:center;color:#89958d;font-size:13px;border:1px dashed #dce5de;border-radius:10px}
+.cart-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:10px 0;border-bottom:1px solid #edf1ee}
+.cart-item-name{font-weight:700;font-size:13px}
+.cart-item-price{font-size:12px;color:#718078;margin-top:4px}
+.qty-control{display:flex;align-items:center;gap:7px}
+.qty-control button{width:29px;height:29px;padding:0;background:#edf3ef;color:#245a3d;font-weight:700}
+.qty-control .remove{background:#fff0ed;color:#b43b2b}
+.qty-number{min-width:18px;text-align:center;font-size:13px;font-weight:700}
+.cart-summary{border-top:1px solid #e5ece7;margin-top:14px;padding-top:12px}
+.summary-line{display:flex;justify-content:space-between;gap:12px;margin:8px 0;font-size:13px}
+.summary-total{font-size:18px;font-weight:700;color:#145c3b;padding-top:8px;border-top:1px solid #edf1ee}
+.cash-input{margin-top:12px}
+.cash-input label{margin-top:0}
+.change-line{color:#28734a;font-weight:700}
+.pos-actions{display:flex;gap:8px;margin-top:14px}
+.pos-actions button{flex:1;min-height:44px}
+.pay-button{background:#32ad3e;color:#fff;font-weight:700;border-radius:24px}
+.save-order-button{background:#fff3d5;color:#8b6500;border-radius:24px}
+.pos-catalog-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.pos-catalog-head input{max-width:280px}
+.pos-filters{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 14px}
+.pos-filter{border:1px solid #dce5de;background:#f8faf8;color:#526259;border-radius:18px;padding:8px 13px;font-size:12px}
+.pos-filter.active{background:#e8f4ec;border-color:#38a34b;color:#21613d;font-weight:700}
+.pos-product-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.pos-product-card{border:1px solid #edf1ee;border-radius:12px;background:#fff;overflow:hidden;text-align:center;cursor:pointer;padding:8px;min-width:0;transition:border-color .15s,transform .15s}
+.pos-product-card:hover{border-color:#79b58d;transform:translateY(-1px)}
+.pos-product-card:disabled{opacity:.48;cursor:not-allowed;transform:none}
+.pos-product-image{width:100%;height:92px;object-fit:contain;border-radius:8px;background:#f7f9f7}
+.pos-product-placeholder{height:92px;display:flex;align-items:center;justify-content:center;background:#f4f7f5;border-radius:8px;color:#9aa79e;font-size:12px}
+.pos-product-name{font-size:12px;font-weight:700;line-height:1.35;margin:8px 0 4px;min-height:32px;overflow-wrap:anywhere}
+.pos-product-price{font-size:12px;color:#5f6e64}
+.pos-stock-note{font-size:10px;color:#9a6b23;margin-top:4px}
+.pos-message{font-size:12px;line-height:1.5;margin-top:10px}
+@media(max-width:850px){.pos-layout{grid-template-columns:1fr}.pos-product-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.cart-list{max-height:260px}}
+@media(max-width:480px){.pos-product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pos-product-image,.pos-product-placeholder{height:105px}.pos-panel{padding:13px}.pos-actions{flex-direction:column}}
+
 </style>
 </head>
 
@@ -101,6 +143,48 @@ header{padding:18px}
       <p>Selamat datang, <strong id="userName">Pengguna</strong>!</p>
       <p id="userRole"></p>
     </div>
+
+
+    <section class="pos-layout" aria-label="Kasir NS FOOD">
+      <div class="pos-panel">
+        <h3>Pesanan</h3>
+        <div id="cartList" class="cart-list">
+          <div class="cart-empty">Belum ada barang dipilih.</div>
+        </div>
+        <div class="cart-summary">
+          <div class="summary-line"><span>Jumlah barang</span><strong id="cartItemCount">0</strong></div>
+          <div class="summary-line summary-total"><span>Total</span><strong id="cartTotal">Rp0</strong></div>
+          <div class="cash-input">
+            <label for="cashReceived">Uang diterima (Tunai)</label>
+            <input id="cashReceived" type="number" min="0" step="1" inputmode="numeric" placeholder="Masukkan jumlah uang">
+          </div>
+          <div class="summary-line change-line"><span>Kembalian</span><strong id="cashChange">Rp0</strong></div>
+          <div class="pos-actions">
+            <button id="saveOrderButton" class="save-order-button" type="button">Simpan Pesanan</button>
+            <button id="payButton" class="pay-button" type="button" disabled>Bayar</button>
+          </div>
+          <div id="posMessage" class="pos-message" role="status"></div>
+        </div>
+      </div>
+
+      <div class="pos-panel">
+        <div class="pos-catalog-head">
+          <div>
+            <h3 style="margin-bottom:4px">Pilih Produk</h3>
+            <div class="notice">Ketuk produk untuk memasukkannya ke pesanan.</div>
+          </div>
+          <input id="posSearch" type="search" placeholder="Cari produk...">
+        </div>
+        <div class="pos-filters" id="posFilters">
+          <button type="button" class="pos-filter active" data-category="Semua">Semua</button>
+          <button type="button" class="pos-filter" data-category="Makanan">Makanan</button>
+          <button type="button" class="pos-filter" data-category="Minuman">Minuman</button>
+        </div>
+        <div id="posProductGrid" class="pos-product-grid">
+          <div class="cart-empty">Memuat produk...</div>
+        </div>
+      </div>
+    </section>
 
     <div class="panel">
       <div class="toolbar">
@@ -300,7 +384,11 @@ let categories = [];
 let products = [];
 let editingProductId = null;
 let editingProductImageUrl = null;
+
 let drinkInventory = null;
+let cart = [];
+let activePOSCategory = "Semua";
+
 
 const categoryId = (name) =>
   categories.find(category => category.name === name)?.id;
@@ -345,7 +433,7 @@ function showDashboard(profile) {
   document.getElementById("cashierEntryForm").reset();
   document.getElementById("cashierMessage").textContent = "";
 
-  loadDataBarang();
+  loadDataBarang().then(() => restoreOrderDraft());
 }
 
 async function loadCategories() {
@@ -376,6 +464,7 @@ async function loadDataBarang() {
 
     renderProducts();
     renderDrinkStock();
+    renderPOSProducts();
 
   } catch (error) {
     console.error(error);
@@ -509,6 +598,295 @@ function renderProducts() {
     table.appendChild(row);
   });
 }
+
+
+function getProductCategoryName(product) {
+  return categories.find(category => category.id === product.category_id)?.name || "";
+}
+
+function getAvailableStock(product) {
+  if (product.stock_mode === "shared_cups") {
+    return Number(drinkInventory?.cup_stock || 0);
+  }
+  return Number(product.stock_quantity || 0);
+}
+
+function showPOSMessage(message, type = "error") {
+  const element = document.getElementById("posMessage");
+  element.textContent = message;
+  element.style.color = type === "success" ? "#28734a" : "#b43b2b";
+}
+
+function renderPOSProducts() {
+  const grid = document.getElementById("posProductGrid");
+  if (!grid) return;
+
+  const keyword = document.getElementById("posSearch").value.trim().toLowerCase();
+  const availableProducts = products.filter(product => {
+    const categoryName = getProductCategoryName(product);
+    return product.is_active &&
+      (activePOSCategory === "Semua" || categoryName === activePOSCategory) &&
+      product.name.toLowerCase().includes(keyword);
+  });
+
+  grid.innerHTML = "";
+  if (availableProducts.length === 0) {
+    grid.innerHTML = '<div class="cart-empty" style="grid-column:1/-1">Produk tidak ditemukan.</div>';
+    return;
+  }
+
+  availableProducts.forEach(product => {
+    const stock = getAvailableStock(product);
+    const inCart = cart.find(item => item.product_id === product.id)?.quantity || 0;
+    const isOut = stock <= inCart;
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "pos-product-card";
+    card.disabled = isOut;
+    card.title = isOut ? "Stok tidak mencukupi" : "Tambah " + product.name;
+
+    if (product.image_url) {
+      const image = document.createElement("img");
+      image.className = "pos-product-image";
+      image.src = product.image_url;
+      image.alt = product.name;
+      image.loading = "lazy";
+      card.appendChild(image);
+    } else {
+      const placeholder = document.createElement("div");
+      placeholder.className = "pos-product-placeholder";
+      placeholder.textContent = "Foto belum tersedia";
+      card.appendChild(placeholder);
+    }
+
+    const name = document.createElement("div");
+    name.className = "pos-product-name";
+    name.textContent = product.name;
+
+    const price = document.createElement("div");
+    price.className = "pos-product-price";
+    price.textContent = rupiah(product.sale_price);
+
+    const stockNote = document.createElement("div");
+    stockNote.className = "pos-stock-note";
+    stockNote.textContent = isOut ? "Stok habis" : "Tersedia: " + Math.max(0, stock - inCart);
+
+    card.append(name, price, stockNote);
+    card.addEventListener("click", () => addToCart(product));
+    grid.appendChild(card);
+  });
+}
+
+function addToCart(product) {
+  if (!currentProfile) return;
+  const available = getAvailableStock(product);
+  const existing = cart.find(item => item.product_id === product.id);
+
+  if ((existing?.quantity || 0) + 1 > available) {
+    showPOSMessage("Stok " + product.name + " tidak mencukupi.");
+    return;
+  }
+
+  if (existing) {
+    existing.quantity += 1;
+  } else {
+    cart.push({
+      product_id: product.id,
+      name: product.name,
+      unit_price: Number(product.sale_price),
+      quantity: 1
+    });
+  }
+
+  showPOSMessage("");
+  renderCart();
+  renderPOSProducts();
+}
+
+function changeCartQuantity(productId, change) {
+  const item = cart.find(entry => entry.product_id === productId);
+  const product = products.find(entry => entry.id === productId);
+  if (!item || !product) return;
+
+  const nextQuantity = item.quantity + change;
+  if (nextQuantity <= 0) {
+    cart = cart.filter(entry => entry.product_id !== productId);
+  } else {
+    if (nextQuantity > getAvailableStock(product)) {
+      showPOSMessage("Stok " + product.name + " tidak mencukupi.");
+      return;
+    }
+    item.quantity = nextQuantity;
+  }
+
+  renderCart();
+  renderPOSProducts();
+}
+
+function cartSubtotal() {
+  return cart.reduce((sum, item) => sum + item.unit_price * item.quantity, 0);
+}
+
+function renderCart() {
+  const list = document.getElementById("cartList");
+  const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const total = cartSubtotal();
+
+  list.innerHTML = "";
+  if (cart.length === 0) {
+    list.innerHTML = '<div class="cart-empty">Belum ada barang dipilih.</div>';
+  } else {
+    cart.forEach(item => {
+      const row = document.createElement("div");
+      row.className = "cart-item";
+
+      const info = document.createElement("div");
+      const name = document.createElement("div");
+      name.className = "cart-item-name";
+      name.textContent = item.name + " (" + item.quantity + "x)";
+      const price = document.createElement("div");
+      price.className = "cart-item-price";
+      price.textContent = rupiah(item.unit_price * item.quantity);
+      info.append(name, price);
+
+      const controls = document.createElement("div");
+      controls.className = "qty-control";
+      const minus = document.createElement("button");
+      minus.type = "button";
+      minus.textContent = "−";
+      minus.setAttribute("aria-label", "Kurangi " + item.name);
+      minus.addEventListener("click", () => changeCartQuantity(item.product_id, -1));
+      const qty = document.createElement("span");
+      qty.className = "qty-number";
+      qty.textContent = item.quantity;
+      const plus = document.createElement("button");
+      plus.type = "button";
+      plus.textContent = "+";
+      plus.setAttribute("aria-label", "Tambah " + item.name);
+      plus.addEventListener("click", () => changeCartQuantity(item.product_id, 1));
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "remove";
+      remove.textContent = "×";
+      remove.setAttribute("aria-label", "Hapus " + item.name);
+      remove.addEventListener("click", () => {
+        cart = cart.filter(entry => entry.product_id !== item.product_id);
+        renderCart();
+        renderPOSProducts();
+      });
+      controls.append(minus, qty, plus, remove);
+      row.append(info, controls);
+      list.appendChild(row);
+    });
+  }
+
+  document.getElementById("cartItemCount").textContent = count;
+  document.getElementById("cartTotal").textContent = rupiah(total);
+  updateCashChange();
+  renderPOSProducts();
+}
+
+function updateCashChange() {
+  const total = cartSubtotal();
+  const received = Number(document.getElementById("cashReceived").value || 0);
+  const change = Math.max(0, received - total);
+  document.getElementById("cashChange").textContent = rupiah(change);
+  document.getElementById("payButton").disabled =
+    cart.length === 0 || received < total || total <= 0;
+}
+
+function saveOrderDraft() {
+  if (!currentProfile) return;
+  const key = "nsfood-order-" + currentProfile.username;
+  try {
+    localStorage.setItem(key, JSON.stringify(cart));
+    showPOSMessage("Pesanan sementara tersimpan di perangkat ini.", "success");
+  } catch (error) {
+    showPOSMessage("Pesanan tidak dapat disimpan di perangkat ini.");
+  }
+}
+
+function restoreOrderDraft() {
+  if (!currentProfile) return;
+  const key = "nsfood-order-" + currentProfile.username;
+  try {
+    const saved = JSON.parse(localStorage.getItem(key) || "[]");
+    if (Array.isArray(saved)) {
+      cart = saved.filter(item =>
+        products.some(product => product.id === item.product_id && product.is_active)
+      ).map(item => ({
+        product_id: item.product_id,
+        name: String(item.name),
+        unit_price: Number(item.unit_price),
+        quantity: Math.max(1, Math.floor(Number(item.quantity) || 1))
+      }));
+      renderCart();
+    }
+  } catch (error) {
+    cart = [];
+  }
+}
+
+async function completePayment() {
+  if (!currentProfile || cart.length === 0) return;
+
+  const total = cartSubtotal();
+  const payment = Number(document.getElementById("cashReceived").value || 0);
+  if (!Number.isFinite(payment) || payment < total) {
+    showPOSMessage("Uang yang diterima belum mencukupi.");
+    return;
+  }
+
+  const payButton = document.getElementById("payButton");
+  payButton.disabled = true;
+  payButton.textContent = "Memproses...";
+
+  try {
+    const items = cart.map(item => ({
+      product_id: item.product_id,
+      quantity: item.quantity
+    }));
+
+    const { data, error } = await supabase.rpc("process_sale", {
+      p_items: items,
+      p_discount: 0,
+      p_payment_amount: payment
+    });
+
+    if (error) throw error;
+
+    const key = "nsfood-order-" + currentProfile.username;
+    localStorage.removeItem(key);
+    const saleId = data;
+    cart = [];
+    document.getElementById("cashReceived").value = "";
+    renderCart();
+    await loadDataBarang();
+    showPOSMessage("Transaksi berhasil! Nomor transaksi: " + String(saleId), "success");
+  } catch (error) {
+    console.error("Transaksi gagal:", error);
+    showPOSMessage(error.message || "Transaksi gagal diproses.");
+  } finally {
+    payButton.textContent = "Bayar";
+    updateCashChange();
+  }
+}
+
+document.getElementById("posSearch").addEventListener("input", renderPOSProducts);
+document.getElementById("cashReceived").addEventListener("input", updateCashChange);
+document.getElementById("saveOrderButton").addEventListener("click", saveOrderDraft);
+document.getElementById("payButton").addEventListener("click", completePayment);
+
+document.getElementById("posFilters").addEventListener("click", event => {
+  const button = event.target.closest("button[data-category]");
+  if (!button) return;
+  activePOSCategory = button.dataset.category;
+  document.querySelectorAll(".pos-filter").forEach(filter => {
+    filter.classList.toggle("active", filter === button);
+  });
+  renderPOSProducts();
+});
+
 
 function updateStockFields() {
   const category = document.getElementById("productCategory").value;
@@ -911,6 +1289,8 @@ loginForm.addEventListener("submit", async (event) => {
 document.getElementById("logoutButton").addEventListener("click", async () => {
   await supabase.auth.signOut();
   currentProfile = null;
+  cart = [];
+  renderCart();
   dashboard.style.display = "none";
   loginPage.style.display = "flex";
   loginForm.reset();
